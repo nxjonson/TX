@@ -1,7 +1,5 @@
-{"recommend":"LIST:高分电影Films",
+{"recommend":"LIST:犯叔说影",
 "class":[
-{"type_id":"LIST:阿奇讲电影,虎妞小叨叨,温城鲤,哇萨比抓马","type_name":"订阅"}],
-"LIST:华语音乐,华语MV,点击率最高":[
-{"key":"time","name":"时间","value":[{"n":"时间全选","v":""},{"n":"2024","v":"2024"},{"n":"2023","v":"2023"}]},
-{"key":"tid","name":"地区","value":[{"n":"华语音乐","v":"华语音乐"},{"n":"华语MV","v":"华语MV"}]}],
+{"type_id":"LIST:阿奇讲电影,虎妞小叨叨,温城鲤,哇萨比抓马,壹號電視館","type_name":"订阅"},
+{"type_id":"LIST:华语音乐,华语MV","type_name":"音乐"}],
 "jx":0,"parse":0}

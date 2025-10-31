@@ -1,8 +1,0 @@
-[{
-  "name": "推荐",
-  "list": [
-{"name": "TV", "url": "https://cors.isteed.cc/raw.githubusercontent.com/klcb2010/TX/refs/heads/master/Live/ourTV.apk", "icon": "https://cors.isteed.cc/github.com/klcb2010/TX/raw/master/Live/tv_logo.png", "version": "3.7"},
-{"name": "OK影视TV版", "url": "https://cors.isteed.cc/raw.githubusercontent.com/klcb2010/TX/refs/heads/master/Live/TV.apk", "icon": "https://cors.isteed.cc/github.com/klcb2010/TX/raw/master/Live/apklogo.png", "version": "2.8.5"},
-{"name": "OK影视手机版", "url": "https://cors.isteed.cc/raw.githubusercontent.com/klcb2010/TX/refs/heads/master/Live/phone.apk", "icon": "https://cors.isteed.cc/github.com/klcb2010/TX/raw/master/Live/apklogo.png", "version": "2.8.5"}
-  ]
-}]

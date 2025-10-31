@@ -1,1 +1,8 @@
-{"class": [{"type_name":"登陆配置","type_id":"peizhi"},{"type_name":"无损音乐","type_id":"无损音乐"}]}
+{"class": [
+{"type_name":"登陆账号","type_id":"peizhi"},
+{"type_name":"无损音乐","type_id":"无损音乐"},
+{"type_name":"蛋仔派对0","type_id":"隐秘的兔仙"},
+{"type_name":"蛋仔派对1","type_id":"游小浪Game"},
+{"type_name":"蛋仔派对2","type_id":"小姜的蛋仔派对"}
+]}
+

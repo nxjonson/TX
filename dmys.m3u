@@ -1,0 +1,60 @@
+#EXTM3U x-tvg-url="https://assets.livednow.com/epg.xml"
+
+#EXTINF:-1,tvg-id="CCTV1" tvg-name="CCTV1" tvg-logo="https://epg.v1.mk/logo/CCTV1.png" group-title="低码央视",CCTV1
+http://127.0.0.1:35456/gaoma/cctv1.m3u8
+#EXTINF:-1,tvg-id="CCTV2" tvg-name="CCTV2" tvg-logo="https://epg.v1.mk/logo/CCTV2.png" group-title="低码央视",CCTV2
+http://127.0.0.1:35456/gaoma/cctv2.m3u8
+#EXTINF:-1,tvg-id="CCTV3" tvg-name="CCTV3" tvg-logo="https://epg.v1.mk/logo/CCTV3.png" group-title="低码央视",CCTV3
+http://127.0.0.1:35456/gaoma/cctv3.m3u8
+#EXTINF:-1,tvg-id="CCTV4" tvg-name="CCTV4" tvg-logo="https://epg.v1.mk/logo/CCTV4.png" group-title="低码央视",CCTV4
+http://127.0.0.1:35456/gaoma/cctv4.m3u8
+#EXTINF:-1,tvg-id="CCTV5" tvg-name="CCTV5" tvg-logo="https://epg.v1.mk/logo/CCTV5.png" group-title="低码央视",CCTV5
+http://127.0.0.1:35456/gaoma/cctv5.m3u8
+#EXTINF:-1,tvg-id="CCTV5+" tvg-name="CCTV5+" tvg-logo="https://epg.v1.mk/logo/CCTV5+.png" group-title="低码央视",CCTV5p
+http://127.0.0.1:35456/gaoma/cctv5p.m3u8
+#EXTINF:-1,tvg-id="CCTV7" tvg-name="CCTV7" tvg-logo="https://epg.v1.mk/logo/CCTV7.png" group-title="低码央视",CCTV7
+http://127.0.0.1:35456/gaoma/cctv7.m3u8
+#EXTINF:-1,tvg-id="CCTV8" tvg-name="CCTV8" tvg-logo="https://epg.v1.mk/logo/CCTV8.png" group-title="低码央视",CCTV8
+http://127.0.0.1:35456/gaoma/cctv8.m3u8
+#EXTINF:-1,tvg-id="CCTV9" tvg-name="CCTV9" tvg-logo="https://epg.v1.mk/logo/CCTV9.png" group-title="低码央视",CCTV9
+http://127.0.0.1:35456/gaoma/cctv9.m3u8
+#EXTINF:-1,tvg-id="cctv10" tvg-name="cctv10" tvg-logo="https://epg.v1.mk/logo/cctv10.png" group-title="低码央视",cctv10
+http://127.0.0.1:35456/gaoma/cctv10.m3u8
+#EXTINF:-1,tvg-id="CCTV11" tvg-name="CCTV11" tvg-logo="https://epg.v1.mk/logo/CCTV11.png" group-title="低码央视",CCTV11
+http://127.0.0.1:35456/gaoma/cctv11.m3u8
+#EXTINF:-1,tvg-id="CCTV12" tvg-name="CCTV12" tvg-logo="https://epg.v1.mk/logo/CCTV12.png" group-title="低码央视",CCTV12
+http://127.0.0.1:35456/gaoma/cctv12.m3u8
+#EXTINF:-1,tvg-id="CCTV13" tvg-name="CCTV13" tvg-logo="https://epg.v1.mk/logo/CCTV13.png" group-title="低码央视",CCTV13
+http://127.0.0.1:35456/gaoma/cctv13.m3u8
+#EXTINF:-1,tvg-id="CCTV14" tvg-name="CCTV14" tvg-logo="https://epg.v1.mk/logo/CCTV14.png" group-title="低码央视",CCTV14
+http://127.0.0.1:35456/gaoma/cctv14.m3u8
+#EXTINF:-1,tvg-id="CCTV15" tvg-name="CCTV15" tvg-logo="https://epg.v1.mk/logo/CCTV15.png" group-title="低码央视",CCTV15
+http://127.0.0.1:35456/gaoma/cctv15.m3u8
+#EXTINF:-1,tvg-id="CCTV16" tvg-name="CCTV16" tvg-logo="https://epg.v1.mk/logo/CCTV16.png" group-title="低码央视",CCTV16
+http://127.0.0.1:35456/gaoma/cctv16.m3u8
+#EXTINF:-1,tvg-id="CCTV17" tvg-name="CCTV17" tvg-logo="https://epg.v1.mk/logo/CCTV17.png" group-title="低码央视",CCTV17
+http://127.0.0.1:35456/gaoma/cctv17.m3u8
+
+#EXTINF:-1 tvg-logo="https://gcore.jsdelivr.net/gh/klcb2010/TVlogo/img/CTI2.png" group-title="油管新闻",中天新聞   
+https://www.youtube.com/watch?v=vr3XyVCR4T0  
+#EXTINF:-1 tvg-logo="https://gcore.jsdelivr.net/gh/klcb2010/TVlogo/img/SET2.png" group-title="油管新闻",三立新闻  
+https://m.youtube.com/watch?v=MV9mI0GChwo  
+#EXTINF:-1 tvg-logo="https://gcore.jsdelivr.net/gh/klcb2010/TVlogo/img/FTV1.png" group-title="油管新闻",民視新聞   
+https://m.youtube.com/watch?v=ylYJSBUgaMA  
+#EXTINF:-1 tvg-logo="https://gcore.jsdelivr.net/gh/klcb2010/TVlogo/img/CTS1.png" group-title="油管新闻",華視新聞  
+https://www.youtube.com/watch?v=wM0g8EoUZ_E  
+#EXTINF:-1 tvg-logo="https://gcore.jsdelivr.net/gh/klcb2010/TVlogo/img/CTV1.png" group-title="油管新闻",中視新聞  
+https://www.youtube.com/watch?v=TCnaIE_SAtM  
+#EXTINF:-1 tvg-logo="https://gcore.jsdelivr.net/gh/klcb2010/TVlogo/img/TTV.png" group-title="油管新闻",台視新聞  
+https://www.youtube.com/watch?v=xL0ch83RAK8  
+#EXTINF:-1 tvg-logo="https://gcore.jsdelivr.net/gh/klcb2010/TVlogo/img/Global2.png" group-title="油管新闻",寰宇新聞  
+https://m.youtube.com/watch?v=6IquAgfvYmc  
+#EXTINF:-1 tvg-logo="https://gcore.jsdelivr.net/gh/klcb2010/TVlogo/img/mnews-logo.png" group-title="油管新闻",鏡新聞  
+https://www.youtube.com/watch?v=5n0y6b0Q25o
+#EXTINF:-1 tvg-logo="https://gcore.jsdelivr.net/gh/klcb2010/TVlogo/img/CTS1.png" group-title="油管新闻",华视新闻 
+https://m.youtube.com/watch?v=wM0g8EoUZ_E
+#EXTINF:-1 tvg-logo="https://cors.isteed.cc/raw.githubusercontent.com/klcb2010/TVlogo/refs/heads/main/img/PTS.png" group-title="油管新闻",公視
+https://m.youtube.com/watch?v=C6gYqSHLRw4
+
+
+
