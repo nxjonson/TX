@@ -84,7 +84,7 @@ jobs:
           skip_name  = re.compile(r'(cgtnru-MCP|cgtndoc-MCP|cgtn-MCP|CGTNALBY|cctv16-MST|cctv8k-MCP|CGTN外语纪录|CGTN阿拉伯语|CGTN西班牙语|CGTN法语|CGTN俄语|CGTN|老故事|发现之旅|中学生|四海钓鱼|24小时|最经典|传奇|体坛|精英|cgtnfr|怀旧剧场)')
 
           migu_exclude_name = re.compile(r'(吉林|青海|海南|海峡|中国农林|兵团|河南|陕西|大湾|东南)')
-          weishi_mcp_exclude = re.compile(r'(云南|兵团|甘肃|新疆|西藏|宁夏|海南|青海|内蒙古|山西|陕西|河南)')
+          weishi_mcp_exclude = re.compile(r'(云南|兵团|甘肃|新疆|西藏|海南|青海|内蒙古|山西|陕西|河南)')
 
           def is_cctv(extinf): return bool(re.search(r'group-title="[^"]*央视"|CCTV|cctv', extinf))
           def is_weishi(extinf): return bool(re.search(r'group-title="[^"]*卫视"', extinf))
@@ -124,23 +124,15 @@ jobs:
                   weishi += [extinf, url]
               i += 2
 
-          print(f"[INFO] 卫视频道: {len(weishi)//2}, MCP 卫视: {len(weishi_mcp)//2}, 央视: {len(cctv)//2}, migu: {len(migu)//2}")
+          print(f"[INFO]  央视: {len(cctv)//2}, MCP 卫视: {len(weishi_mcp)//2}, 卫视频道: {len(weishi)//2}")
 
-          out_lines = [header0, header1] + weishi_mcp + weishi + cctv + migu
+          out_lines = [header0, header1] + cctv + weishi_mcp + weishi 
           with open("li.m3u", "w", encoding="utf-8") as f:
               f.write("\n".join(out_lines) + "\n")
 
           with open("li.m3u", "r", encoding="utf-8") as f:
               print("[INFO] li.m3u 前6行：\n" + "".join(f.readlines()[:6]))
 
-          try:
-              with open("dmys.m3u", "r", encoding="utf-8") as f:
-                  dmys_content = f.read()
-                  with open("li.m3u", "a", encoding="utf-8") as li_f:
-                      li_f.write(dmys_content)
-                      print("[INFO] dmys.m3u 内容已追加到 li.m3u")
-          except FileNotFoundError:
-              print("[ERROR] 未找到 dmys.m3u 文件")
           EOF
 
       - name: Commit and push li.m3u changes
