@@ -2,12 +2,10 @@ name: Sync M3U and JSON
 
 on:
   schedule:
-    - cron: '20 23 * * *'  # 北京时间每天凌晨6点20分
+    - cron: '20 20 * * *'  # 北京时间每天凌晨4点20分
   push:
     branches:
       - master
-    paths:
-      - 'ok/**'  # 仅 ok/ 目录触发
   workflow_dispatch:
 
 permissions:
