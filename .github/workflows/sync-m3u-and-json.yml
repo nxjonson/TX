@@ -2,7 +2,7 @@ name: Sync M3U and JSON
 
 on:
   schedule:
-    - cron: '20 22 * * *'  # 北京时间每天凌晨6点20分
+    - cron: '20 23 * * *'  # 北京时间每天凌晨6点20分
   push:
     branches:
       - master
