@@ -1,4 +1,4 @@
-name: Sync M3U
+name: Sync M3U and JSON
 
 on:
   schedule:
@@ -31,10 +31,16 @@ jobs:
           echo "Current UTC time: $(date -u)"
           if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "trigger_type=schedule_or_manual" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "trigger_type=png_update" >> "$GITHUB_OUTPUT"
           else
             echo "trigger_type=skip" >> "$GITHUB_OUTPUT"
           fi
           echo "Trigger type set to: ${{ steps.check_trigger.outputs.trigger_type }}"
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "Changed files:"
+            git diff --name-only HEAD^ HEAD || echo "No changes detected"
+          fi
 
       - name: Fetch source M3U file
         if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
@@ -127,15 +133,63 @@ jobs:
 
       - name: Commit and push li.m3u changes
         if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        id: commit_m3u
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add li.m3u
           if git diff --cached --quiet; then
             echo "No changes to li.m3u to commit."
+            echo "m3u_changed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "Update li.m3u"
             git push
+            echo "m3u_changed=true" >> "$GITHUB_OUTPUT"
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if triggered by GitHub Action
+        if: steps.check_trigger.outputs.trigger_type != 'skip'
+        id: check_commit
+        run: |
+          LAST_COMMIT_AUTHOR=$(git log -1 --pretty=%an)
+          if [[ "$LAST_COMMIT_AUTHOR" == "GitHub Action" ]]; then
+            echo "skip_json=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip_json=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Last commit author: $LAST_COMMIT_AUTHOR"
+
+      - name: Run sync JSON script for UA update
+        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        id: sync_json_ua
+        run: |
+          python sync_json2025.py --update-ua
+          if git diff --quiet 2024.json; then
+            echo "changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run sync JSON script for PNG update
+        if: steps.check_trigger.outputs.trigger_type == 'png_update' && steps.check_commit.outputs.skip_json == 'false'
+        id: sync_json_png
+        run: |
+          python sync_json2025.py --update-png
+          if git diff --quiet 2024.json; then
+            echo "changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push JSON changes
+        if: steps.sync_json_ua.outputs.changes == 'true' || steps.sync_json_png.outputs.changes == 'true'
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add 2024.json
+          git commit -m "Sync JSON: UA or PNG update"
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
