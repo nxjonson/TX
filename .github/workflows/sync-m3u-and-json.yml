@@ -2,7 +2,7 @@ name: Sync M3U Only
 
 on:
   schedule:
-    - cron: '20 20 * * *'  # 北京时间每天凌晨4点20分
+    - cron: '20 06 * * *'  # UTC时间06:20，相当于北京时间14:20
   workflow_dispatch:
 
 permissions:
@@ -26,100 +26,143 @@ jobs:
       - name: Fetch source M3U file
         run: |
           set -e
-          curl -fL -o iptv.m3u "https://live.ottiptv.cc/iptv.m3u?userid=8257116338&sign=0ee32bfd89ad8fb98abcd98abcd834c5bca8a9d2067e9246d1afe59ed28b776baf830aac5a8a3be63250f7b48bff27641ac52755922b1caa12c7d5a7830ed826437d537c6bc26aa6b0d0&auth_token=5fc58b8400b4d34067df90bae9ffe50c"
+          curl -fL -o iptv.m3u "https://live.ottiptv.cc/iptv.m3u?userid=8257116338&sign=0ee32bfd89ad8fb98abcd98abcd98abcd834c5bca8a9d2067e9246d1afe59ed28b776baf830aac5a8a3be63250f7b48bff27641ac52755922b1caa12c7d5a7830ed826437d537c6bc26aa6b0d0&auth_token=5fc58b8400b4d34067df90bae9ffe50c"
           echo "Downloaded iptv.m3u lines:" && wc -l iptv.m3u
-          echo "First 3 lines of iptv.m3u:" && head -n 3 iptv.m3u
+          echo "First 180 lines of iptv.m3u:" && head -n 240 iptv.m3u
           test -s iptv.m3u || { echo "Error: iptv.m3u is empty or not downloaded"; exit 1; }
 
       - name: Process & generate li.m3u
         run: |
           python3 <<'EOF'
-          import re, sys
-          UA_HINT = "##UA-Hint: 请将 User-Agent 设置为 okHttp/Mod-1.4.0.0 ，否则无法观看"
-          try:
-              with open("iptv.m3u", "r", encoding="utf-8", errors="ignore") as f:
-                  lines = f.read().splitlines()
-          except Exception as e:
-              print("[ERROR] 读取 iptv.m3u 失败：", e)
-              sys.exit(1)
+import re
+import sys
 
-          if not lines:
-              print("[ERROR] iptv.m3u 为空 为空")
-              sys.exit(1)
+UA_HINT = "##UA-Hint: 请将 User-Agent 设置为 okHttp/Mod-1.4.0.0 ，否则无法观看"
 
-          header0 = lines[0].strip() if lines else "#EXTM3U"
-          header1 = UA_HINT
-          print("[INFO] Header line 1:", header0)
-          print("[INFO] Header line 2:", header1)
+try:
+    with open("iptv.m3u", "r", encoding="utf-8", errors="ignore") as f:
+        content = f.read().strip()
+        lines = content.split('\n')
+except Exception as e:
+    print(f"[ERROR] 读取 iptv.m3u 失败：{e}")
+    sys.exit(1)
 
-          body = lines[2:] if len(lines) > 2 else []
-          weishi, cctv, migu, weishi_mcp = [], [], [], []
+if not lines:
+    print("[ERROR] iptv.m3u 为空")
+    sys.exit(1)
 
-          skip_group = re.compile(r'group-title="(4K频道|熊猫|影视|地方|少儿|教育|其他|体育|印象天下|纪实|综艺|新闻)"')
-          skip_name  = re.compile(r'(cgtnru-MCP|cgtndoc-MCP|cgtn-MCP|CGTNALBY|cctv16-MST|cctv8k-MCP|CGTN外语纪录|CGTN阿拉伯语|CGTN西班牙语|CGTN法语|CGTN俄语|CGTN|老故事|发现之旅|中学生|四海钓鱼|24小时|最经典|传奇|体坛|精英|cgtnfr|怀旧剧场)')
+# Find the first EXTINF line to determine where headers end
+header_end = 500  # Increased default safe value
+for i, line in enumerate(lines):
+    if line.startswith("#EXTINF"):
+        header_end = i
+        break
 
-          migu_exclude_name = re.compile(r'(吉林|青海|海南|海峡|中国农林|兵团|河南|陕西|大湾|东南)')
-          weishi_mcp_exclude = re.compile(r'(云南|兵团|甘肃|新疆|西藏|海南|青海|内蒙古|山西|陕西|河南)')
+header_lines = lines[:header_end]
+body_lines = lines[header_end:]
 
-          def is_cctv(extinf): return bool(re.search(r'group-title="[^"]*央视"|CCTV|cctv', extinf))
-          def is_weishi(extinf): return bool(re.search(r'group-title="[^"]*卫视"', extinf))
-          def is_weishi_mcp(extinf): return bool(re.search(r'-MCP', extinf))
+print(f"[INFO] Found {len(header_lines)} header lines")
+print(f"[INFO] Body has {len(body_lines)} lines")
 
-          i, n = 0, len(body)
-          while i < n:
-              if not body[i].startswith("#EXTINF"):
-                  i += 1
-                  continue
-              extinf = body[i]
-              if skip_group.search(extinf) or skip_name.search(extinf):
-                  i += 2
-                  continue
-              url = body[i+1] if (i+1 < n and body[i+1].startswith("http")) else None
-              if not url:
-                  i += 1
-                  continue
-              # 过滤咪咕
-              if (re.search(r'migu', url, re.I) or
-                   re.search(r'\bmg\b', url, re.I) or
-                   'mgtv.ottiptv.cc' in url.lower()):
-                  if not migu_exclude_name.search(extinf):
-                      migu += [extinf, url]
-              # MCP 卫视过滤
-              elif is_weishi(extinf) and is_weishi_mcp(extinf):
-                  if not weishi_mcp_exclude.search(extinf):
-                      weishi_mcp += [extinf, url]
-              # 普通卫视
-              elif is_weishi(extinf):
-                  weishi += [extinf, url]
-              # 央视
-              elif is_cctv(extinf):
-                  cctv += [extinf, url]
-              # 默认归为卫视
-              else:
-                  weishi += [extinf, url]
-              i += 2
+weishi, cctv, migu, weishi_mcp = [], [], [], []
 
-          print(f"[INFO]  央视: {len(cctv)//2}, MCP 卫视: {len(weishi_mcp)//2}, 卫视频道: {len(weishi)//2}")
+skip_group = re.compile(r'group-title="(4K频道|熊猫|影视|地方|少儿|教育|其他|体育|印象天下|纪实|综艺|新闻)", re.IGNORECASE)
+skip_name  = re.compile(r'(cgtnru-MCP|cgtndoc-MCP|cgtn-MCP|CGTNALBY|cctv16-MST|cctv8k-MCP|CGTN外语纪录|CGTN阿拉伯语|CGTN西班牙语|CGTN法语|CGTN俄语|CGTN|老故事|发现之旅|中学生|四海钓鱼|24小时|最经典|传奇|体坛|精英|cgtnfr|怀旧剧场)', re.IGNORECASE)
 
-          out_lines = [header0, header1] + cctv + weishi_mcp + weishi 
-          with open("li.m3u", "w", encoding="utf-8") as f:
-              f.write("\n".join(out_lines) + "\n")
+migu_exclude_name = re.compile(r'(吉林|青海|海南|海峡|中国农林|兵团|河南|陕西|大湾|东南)', re.IGNORECASE)
+weishi_mcp_exclude = re.compile(r'(云南|兵团|甘肃|新疆|西藏|海南|青海|内蒙古|山西|陕西|河南)', re.IGNORECASE)
 
-          with open("li.m3u", "", "r", encoding="utf-8") as f:
-              print("[INFO] li.m3u 前6行：\n" + "".join(f.readlines()[:6]))
+def is_cctv(extinf): 
+    return bool(re.search(r'group-title="[^"]*央视"|CCTV|cctv', extinf, re.IGNORECASE)
 
-          EOF
+def is_weishi(extinf): 
+    return bool(re.search(r'group-title="[^"]*卫视"', extinf, re.IGNORECASE)
+
+def is_weishi_mcp(url): 
+    return bool(re.search(r'MCP', url, re.IGNORECASE)
+
+i, n = 0, len(body_lines)
+processed_channels = 0
+
+while i < n:
+    if not body_lines[i].startswith("#EXTINF"):
+        i += 1
+        continue
+
+    extinf = body_lines[i]
+    url_line = body_lines[i+1] if (i+1 < n) else ""
+
+    # Skip if URL doesn't start with http
+    if not url_line.startswith('http'):
+        i += 1
+        continue
+
+    processed_channels += 1
+
+    # Apply exclusion rules
+    if skip_group.search(extinf) or skip_name.search(extinf):
+        i += 2
+        continue
+
+    # Categorize channels
+    if is_weishi(extinf) and is_weishi_mcp(url_line):
+        if not weishi_mcp_exclude.search(extinf):
+            weishi_mcp.extend([extinf, url_line])
+    elif is_cctv(extinf):
+        cctv.extend([extinf, url_line])
+    elif is_weishi(extinf):
+        weishi.extend([extinf, url_line])
+    elif ('migu' in url_line.lower() or 
+          'mgtv.ottiptv.cc' in url_line.lower()):
+        if not migu_exclude_name.search(extinf):
+            migu.extend([extinf, url_line])
+
+    i += 2
+
+print(f"[INFO] Processed channels: {processed_channels}")
+print(f"[INFO] Categories - CCTV: {len(cctv)//2}, WeiShi_MCP: {len(weishi_mcp)//2}, WeiShi: {len(weishi)//2}, MiGu: {len(migu)//2}")
+
+# Build output with proper ordering
+out_lines = []
+out_lines.extend(header_lines)
+out_lines.append(UA_HINT)
+out_lines.extend(cctv)
+out_lines.extend(weishi_mcp) 
+out_lines.extend(weishi)
+out_lines.extend(migu)
+
+# Write final m3u file
+with open("li.m3u", "w", encoding="utf-8") as f:
+    f.write("\n".join(out_lines) + "\n")
+
+# Verify output
+with open("li.m3u", "r", encoding="utf-8") as f:
+    output_content = f.read().split('\n')
+    print(f"[SUCCESS] Generated li.m3u with {len(output_content)} total lines")
+    print("[INFO] First 38 lines of li.m3u:")
+    for j, line in enumerate(output_content[:38]):
+        print(f"{j+1}: {line}")
+
+EOF
+
+      - name: Verify generated files
+        run: |
+          echo "=== File sizes ==="
+          ls -la *.m3u
+          echo "=== li.m3u line count ==="
+          wc -l li.m3u
+          echo "=== First 105 lines of li.m3u ==="
+          head -n 125 li.m3u
 
       - name: Commit and push li.m3u changes
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@users.noreply.github.com"
           git add li.m3u
-          if git diff --cached --quiet; then
+          if git diff --staged --quiet; then
             echo "No changes to li.m3u to commit."
           else
-            git commit -m "Update li.m3u"
+            git commit -m "Auto-update li.m3u via GitHub Actions"
             git push
+            echo "Changes pushed successfully"
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
