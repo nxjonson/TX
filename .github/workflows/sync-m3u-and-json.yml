@@ -2,7 +2,7 @@ name: Sync M3U Only
 
 on:
   schedule:
-    - cron: '20 08 * * *'  # UTC时间08:20，相当于北京时间16:20
+    - cron: '20 09 * * *'  # UTC时间09:20，相当于北京时间17:20
   workflow_dispatch:
 
 permissions:
@@ -23,17 +23,54 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Fetch source M3U file
+      - name: Fetch source M3U file with retries
         run: |
           set -e
-          curl -fL -o iptv.m3u "https://live.ottiptv.cc/iptv.m3u?userid=8257116338&sign=0ee32bfd89ad8fb98abcd834c5bca8a9d2067e9246d1afe59ed28b776baf830aac5a8a3be63250f7b48bff27641ac52755922b1caa12c7d5a7830ed826437d537c6bc26aa6b0d0&auth_token=5fc58b8400b4d34067df90bae9ffe50c"
-          echo "Downloaded iptv.m3u lines:" && wc -l iptv.m3u
-          echo "First 100 lines of iptv.m3u:" && head -n 160 iptv.m3u
-          test -s iptv.m3u || { echo "Error: iptv.m3u is empty or not downloaded"; exit 1; }
+          MAX_RETRIES=3
+          RETRY_DELAY=60  # seconds
+          
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i of $MAX_RETRIES..."
+            
+            # Clean previous download if exists
+            rm -f iptv.m3u
+            
+            if curl -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" \
+                 --connect-timeout 45 \
+                 --max-time 150 \
+                 --retry 13 \
+                 --retry-delay 40 \
+                 --fail-with-body \
+                 -fL -o iptv.m3u \
+                 "                 "https://live.ottiptv.cc/iptv.m3u?userid=8257116338&sign=0ee32bfd89ad8fb98abcd834c5bca8a9d2067e9246d1afe59ed28b776baf830aac5a8a3be63250f7b48bff27641ac52755922b1caa12c7d5a7830ed826437d537c6bc26aa6b0d0&auth_token=5fc58b8400b4d34067df90bae9ffe50c"; then
+                
 
-      - name: Process & generate li.m3u
+                
+                echo "Download successful!"
+                echo "Downloaded iptv.m3u lines:" && wc -l iptv.m3u
+                echo "File size:" && ls -lh iptv.m3u
+                break
+            else
+                echo "Download failed on attempt $i"
+                if [ $i -lt $MAX_RETRIES ]; then
+                    echo "Waiting $RETRY_DELAY seconds before retry..."
+                    sleep $RETRY_DELAY
+                fi
+            fi
+          done
+          
+          if [ ! -s iptv.m3u ]; then
+            echo "Error: All download attempts failed after $MAX_RETRIES retries"
+            echo "This could be due to:"
+            echo "1. Server maintenance"
+            echo "2. Expired authentication token"
+            echo "3. Network connectivity issues"
+            exit 1
+          fi
+
+      - name: Create processing script
         run: |
-          cat > process_m3u.py << 'SCRIPT_EOF'
+          cat > process_m3u.py << 'PYTHON_EOF'
           import re
           import sys
 
@@ -44,15 +81,15 @@ jobs:
                   content = f.read().strip()
                   lines = content.split('\n')
           except Exception as e:
-              print(f"[ERROR] 读取 iptv.m3u 失败：{e}")
+              print(f"[ERROR] Failed to read iptv.m3u: {e}")
               sys.exit(1)
 
           if not lines:
-              print("[ERROR] iptv.m3u 为空")
+              print("[ERROR] iptv.m3u is empty")
               sys.exit(1)
 
           # Find the first EXTINF line to determine where headers end
-          header_end = 400
+          header_end = min(600, len(lines))  # Safe upper limit
           for i, line in enumerate(lines):
               if line.startswith("#EXTINF"):
                   header_end = i
@@ -61,24 +98,24 @@ jobs:
           header_lines = lines[:header_end]
           body_lines = lines[header_end:]
 
-          print(f"[INFO] Found {len(header_lines)} header lines")
-          print(f"[INFO] Body has {len(body_lines)} lines")
+          print(f"[INFO] Header lines: {len(header_lines)}")
+          print(f"[INFO] Body lines: {len(body_lines)}")
 
           weishi, cctv, migu, weishi_mcp = [], [], [], []
 
           skip_group = re.compile(r'group-title="(4K频道|熊猫|影视|地方|少儿|教育|其他|体育|印象天下|纪实|综艺|新闻)", re.IGNORECASE)
-          skip_name  = re.compile(r'(cgtnru-MCP|cgtndoc-MCP|cgtn-MCP|CGTNALBY|cctv16-MST|cctv8k-MCP|CGTN外语纪录|CGTN阿拉伯语|CGTN西班牙语|CGTN法语|CGTN俄语|CGTN|老故事|发现之旅|中学生|四海钓鱼|24小时|最经典|传奇|体坛|精英|cgtnfr|怀旧剧场)', re.IGNORECASE)
+          skip_name  = re.compile(r'(cgtnru-MCP|cgtndoc-MCP|cgtn-MCP|CGTNALBY|cctv16-MST|cctv8k-MCP|CGTN外语纪录|CGTN阿拉伯语|CGTN西班牙语|CGBTN法语|CGTN俄语|CGTN|老故事|发现之旅|中学生|四海钓鱼|24小时|最经典|传奇|体坛|精英|cgtnfr|怀旧剧场)', re.IGNORECASE)
 
           migu_exclude_name = re.compile(r'(吉林|青海|海南|海峡|中国农林|兵团|河南|陕西|大湾|东南)', re.IGNORECASE)
           weishi_mcp_exclude = re.compile(r'(云南|兵团|甘肃|新疆|西藏|海南|青海|内蒙古|山西|陕西|河南)', re.IGNORECASE)
 
-          def is_cctv(extinf): 
+          def is_cctv(extinf):
               return bool(re.search(r'group-title="[^"]*央视"|CCTV|cctv', extinf, re.IGNORECASE)
 
-          def is_weishi(extinf): 
+          def is_weishi(extinf):
               return bool(re.search(r'group-title="[^"]*卫视"', extinf, re.IGNORECASE)
 
-          def is_weishi_mcp(url): 
+          def is_weishi_mcp(url):
               return bool(re.search(r'MCP', url, re.IGNORECASE)
 
           i, n = 0, len(body_lines)
@@ -91,6 +128,8 @@ jobs:
 
               extinf = body_lines[i]
               url_line = body_lines[i+1] if (i+1 < n) else ""
+
+             "
 
               # Skip if URL doesn't start with http
               if not url_line.startswith('http'):
@@ -112,12 +151,10 @@ jobs:
                   cctv.extend([extinf, url_line])
               elif is_weishi(extinf):
                   weishi.extend([extinf, url_line])
-              elif ('migu' in url_line.lower() or 
+              elif ('migu' in url_line.lower() or
                     'mgtv.ottiptv.cc' in url_line.lower()):
-                  if not migu_exclude_name.search(extinf):
+                  if                  if not migu_exclude_name.search(extinf):
                       migu.extend([extinf, url_line])
-
-             ])
 
               i += 2
 
@@ -129,34 +166,35 @@ jobs:
           out_lines.extend(header_lines)
           out_lines.append(UA_HINT)
           out_lines.extend(cctv)
-          out_lines.extend(weishi_mcp) 
+          out_lines.extend(weishi_mcp)
           out_lines.extend(weishi)
           out_lines.extend(migu)
 
           # Write final m3u file
           with open("li.m3u", "w", encoding="utf-8") as f:
-              f.write("\n".join(out_lines) + "\n")
+              f.write("\\n".join(out_lines) + "\\n")
 
           # Verify output
           with open("li.m3u", "r", encoding="utf-8") as f:
-              output              output_content = f.read().split('\n')
+              output_content = f.read().split('\\n')
               print(f"[SUCCESS] Generated li.m3u with {len(output_content)} total lines")
-              print              print("[INFO] First 35 lines of li.m3u:")
-              for j, line in enumerate(output_content[:35]):
+              print("[INFO] First 30 lines of li.m3u:")
+              for j, line in enumerate(output_content[:30]):
                   print(f"{j+1}: {line}")
 
-          SCRIPT_EOF
-          
-          python3 process_m3u.py
+          PYTHON_EOF
+
+      - name: Run processing script
+        run: python3 process_m3u.py
 
       - name: Verify generated files
         run: |
-          echo "=== File sizes ==="
+          echo "=== File verification ==="
           ls -la *.m3u
-          echo "=== li.m3u line count ==="
+          echo "=== li.m3u statistics ==="
           wc -l li.m3u
-          echo "=== First 115 lines of li.m3u ==="
-          head -n 135 li.m3u
+          echo "=== Sample content (first 70 lines) ==="
+          head -n 140 li.m3u | tail -n 130
 
       - name: Commit and push li.m3u changes
         run: |
@@ -166,7 +204,8 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to li.m3u to commit."
           else
-            git commit -m "Auto-update li.m3u via GitHub Actions"
+            git commit -m "Auto-update li.m3u $(date '+%Y-%m-%d %H:%M:%S')"
+            git pull --rebase
             git push
             echo "Changes pushed successfully"
           fi
