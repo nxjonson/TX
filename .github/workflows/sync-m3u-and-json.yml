@@ -1,9 +1,8 @@
-name: Sync M3U and JSON
+name: Sync M3U Only
 
 on:
   schedule:
     - cron: '20 20 * * *'  # 北京时间每天凌晨4点20分
- 
   workflow_dispatch:
 
 permissions:
@@ -24,35 +23,15 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Check trigger type
-        id: check_trigger
-        run: |
-          echo "Event name: ${{ github.event_name }}"
-          echo "Current UTC time: $(date -u)"
-          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "trigger_type=schedule_or_manual" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "trigger_type=png_update" >> "$GITHUB_OUTPUT"
-          else
-            echo "trigger_type=skip" >> "$GITHUB_OUTPUT"
-          fi
-          echo "Trigger type set to: ${{ steps.check_trigger.outputs.trigger_type }}"
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "Changed files:"
-            git diff --name-only HEAD^ HEAD || echo "No changes detected"
-          fi
-
       - name: Fetch source M3U file
-        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
         run: |
           set -e
-          curl -fL -o iptv.m3u "https://live.ottiptv.cc/iptv.m3u?userid=8257116338&sign=0ee32bfd89ad8fb98abcd834c5bca8a9d2067e9246d1afe59ed28b776baf830aac5a8a3be63250f7b48bff27641ac52755922b1caa12c7d5a7830ed826437d537c6bc26aa6b0d0&auth_token=5fc58b8400b4d34067df90bae9ffe50c"
+          curl -fL -o iptv.m3u "https://live.ottiptv.cc/iptv.m3u?userid=8257116338&sign=0ee32bfd89ad8fb98abcd98abcd834c5bca8a9d2067e9246d1afe59ed28b776baf830aac5a8a3be63250f7b48bff27641ac52755922b1caa12c7d5a7830ed826437d537c6bc26aa6b0d0&auth_token=5fc58b8400b4d34067df90bae9ffe50c"
           echo "Downloaded iptv.m3u lines:" && wc -l iptv.m3u
           echo "First 3 lines of iptv.m3u:" && head -n 3 iptv.m3u
           test -s iptv.m3u || { echo "Error: iptv.m3u is empty or not downloaded"; exit 1; }
 
       - name: Process & generate li.m3u
-        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
         run: |
           python3 <<'EOF'
           import re, sys
@@ -65,7 +44,7 @@ jobs:
               sys.exit(1)
 
           if not lines:
-              print("[ERROR] iptv.m3u 为空")
+              print("[ERROR] iptv.m3u 为空 为空")
               sys.exit(1)
 
           header0 = lines[0].strip() if lines else "#EXTM3U"
@@ -126,70 +105,21 @@ jobs:
           with open("li.m3u", "w", encoding="utf-8") as f:
               f.write("\n".join(out_lines) + "\n")
 
-          with open("li.m3u", "r", encoding="utf-8") as f:
+          with open("li.m3u", "", "r", encoding="utf-8") as f:
               print("[INFO] li.m3u 前6行：\n" + "".join(f.readlines()[:6]))
 
           EOF
 
       - name: Commit and push li.m3u changes
-        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
-        id: commit_m3u
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add li.m3u
           if git diff --cached --quiet; then
             echo "No changes to li.m3u to commit."
-            echo "m3u_changed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "Update li.m3u"
             git push
-            echo "m3u_changed=true" >> "$GITHUB_OUTPUT"
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check if triggered by GitHub Action
-        if: steps.check_trigger.outputs.trigger_type != 'skip'
-        id: check_commit
-        run: |
-          LAST_COMMIT_AUTHOR=$(git log -1 --pretty=%an)
-          if [[ "$LAST_COMMIT_AUTHOR" == "GitHub Action" ]]; then
-            echo "skip_json=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip_json=false" >> "$GITHUB_OUTPUT"
-          fi
-          echo "Last commit author: $LAST_COMMIT_AUTHOR"
-
-      - name: Run sync JSON script for UA update
-        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
-        id: sync_json_ua
-        run: |
-          python sync_json2025.py --update-ua
-          if git diff --quiet 2024.json; then
-            echo "changes=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changes=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Run sync JSON script for PNG update
-        if: steps.check_trigger.outputs.trigger_type == 'png_update' && steps.check_commit.outputs.skip_json == 'false'
-        id: sync_json_png
-        run: |
-          python sync_json2025.py --update-png
-          if git diff --quiet 2024.json; then
-            echo "changes=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changes=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Commit and push JSON changes
-        if: steps.sync_json_ua.outputs.changes == 'true' || steps.sync_json_png.outputs.changes == 'true'
-        run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-          git add 2024.json
-          git commit -m "Sync JSON: UA or PNG update"
-          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
