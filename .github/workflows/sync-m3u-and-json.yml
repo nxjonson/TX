@@ -26,7 +26,7 @@ jobs:
       - name: Fetch source M3U file
         run: |
           set -e
-          curl -fL -o iptv.m3u "https://live.ottiptv.cc/iptv.m3u?userid=8257116338&sign=0ee32bfd89ad8fb98abcd98abcd98abcd834c5bca8a9d2067e9246d1afe59ed28b776baf830aac5a8a3be63250f7b48bff27641ac52755922b1caa12c7d5a7830ed826437d537c537c6bc26aa6b0d0&auth_token=5fc58b8400b4d34067df90bae9ffe50c"
+          curl -fL -o iptv.m3u "https://live.ottiptv.cc/iptv.m3u?userid=8257116338&sign=0ee32bfd89ad8fb98abcd834c5bca8a9d2067e9246d1afe59ed28b776baf830aac5a8a3be63250f7b48bff27641ac52755922b1caa12c7d5a7830ed826437d537c6bc26aa6b0d0&auth_token=5fc58b8400b4d34067df90bae9ffe50c"
           echo "Downloaded iptv.m3u lines:" && wc -l iptv.m3u
           echo "First 100 lines of iptv.m3u:" && head -n 160 iptv.m3u
           test -s iptv.m3u || { echo "Error: iptv.m3u is empty or not downloaded"; exit 1; }
