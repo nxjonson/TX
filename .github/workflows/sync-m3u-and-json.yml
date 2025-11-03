@@ -1,8 +1,9 @@
-name: Sync M3U Only
+name: Sync M3U and JSON
 
 on:
   schedule:
-    - cron: '20 09 * * *'  # UTC时间09:20，相当于北京时间17:20
+    - cron: '20 20 * * *'  # 北京时间每天凌晨4点20分
+  
   workflow_dispatch:
 
 permissions:
@@ -23,189 +24,172 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Fetch source M3U file with retries
+      - name: Check trigger type
+        id: check_trigger
         run: |
-          set -e
-          MAX_RETRIES=3
-          RETRY_DELAY=60  # seconds
-          
-          for i in $(seq 1 $MAX_RETRIES); do
-            echo "Attempt $i of $MAX_RETRIES..."
-            
-            # Clean previous download if exists
-            rm -f iptv.m3u
-            
-            if curl -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" \
-                 --connect-timeout 45 \
-                 --max-time 150 \
-                 --retry 13 \
-                 --retry-delay 40 \
-                 --fail-with-body \
-                 -fL -o iptv.m3u \
-                 "                 "https://live.ottiptv.cc/iptv.m3u?userid=8257116338&sign=0ee32bfd89ad8fb98abcd834c5bca8a9d2067e9246d1afe59ed28b776baf830aac5a8a3be63250f7b48bff27641ac52755922b1caa12c7d5a7830ed826437d537c6bc26aa6b0d0&auth_token=5fc58b8400b4d34067df90bae9ffe50c"; then
-                
-
-                
-                echo "Download successful!"
-                echo "Downloaded iptv.m3u lines:" && wc -l iptv.m3u
-                echo "File size:" && ls -lh iptv.m3u
-                break
-            else
-                echo "Download failed on attempt $i"
-                if [ $i -lt $MAX_RETRIES ]; then
-                    echo "Waiting $RETRY_DELAY seconds before retry..."
-                    sleep $RETRY_DELAY
-                fi
-            fi
-          done
-          
-          if [ ! -s iptv.m3u ]; then
-            echo "Error: All download attempts failed after $MAX_RETRIES retries"
-            echo "This could be due to:"
-            echo "1. Server maintenance"
-            echo "2. Expired authentication token"
-            echo "3. Network connectivity issues"
-            exit 1
+          echo "Event name: ${{ github.event_name }}"
+          echo "Current UTC time: $(date -u)"
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "trigger_type=schedule_or_manual" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "trigger_type=png_update" >> "$GITHUB_OUTPUT"
+          else
+            echo "trigger_type=skip" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Trigger type set to: ${{ steps.check_trigger.outputs.trigger_type }}"
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "Changed files:"
+            git diff --name-only HEAD^ HEAD || echo "No changes detected"
           fi
 
-      - name: Create processing script
+      - name: Fetch source M3U file
+        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
         run: |
-          cat > process_m3u.py << 'PYTHON_EOF'
-          import re
-          import sys
+          set -e
+          curl -fL -o iptv.m3u "https://live.ottiptv.cc/iptv.m3u?userid=8257116338&sign=0ee32bfd89ad8fb98abcd834c5bca8a9d2067e9246d1afe59ed28b776baf830aac5a8a3be63250f7b48bff27641ac52755922b1caa12c7d5a7830ed826437d537c6bc26aa6b0d0&auth_token=5fc58b8400b4d34067df90bae9ffe50c"
+          echo "Downloaded iptv.m3u lines:" && wc -l iptv.m3u
+          echo "First 3 lines of iptv.m3u:" && head -n 3 iptv.m3u
+          test -s iptv.m3u || { echo "Error: iptv.m3u is empty or not downloaded"; exit 1; }
 
+      - name: Process & generate li.m3u
+        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        run: |
+          python3 <<'EOF'
+          import re, sys
           UA_HINT = "##UA-Hint: 请将 User-Agent 设置为 okHttp/Mod-1.4.0.0 ，否则无法观看"
-
           try:
               with open("iptv.m3u", "r", encoding="utf-8", errors="ignore") as f:
-                  content = f.read().strip()
-                  lines = content.split('\n')
+                  lines = f.read().splitlines()
           except Exception as e:
-              print(f"[ERROR] Failed to read iptv.m3u: {e}")
+              print("[ERROR] 读取 iptv.m3u 失败：", e)
               sys.exit(1)
 
           if not lines:
-              print("[ERROR] iptv.m3u is empty")
+              print("[ERROR] iptv.m3u 为空")
               sys.exit(1)
 
-          # Find the first EXTINF line to determine where headers end
-          header_end = min(600, len(lines))  # Safe upper limit
-          for i, line in enumerate(lines):
-              if line.startswith("#EXTINF"):
-                  header_end = i
-                  break
+          header0 = lines[0].strip() if lines else "#EXTM3U"
+          header1 = UA_HINT
+          print("[INFO] Header line 1:", header0)
+          print("[INFO] Header line 2:", header1)
 
-          header_lines = lines[:header_end]
-          body_lines = lines[header_end:]
-
-          print(f"[INFO] Header lines: {len(header_lines)}")
-          print(f"[INFO] Body lines: {len(body_lines)}")
-
+          body = lines[2:] if len(lines) > 2 else []
           weishi, cctv, migu, weishi_mcp = [], [], [], []
 
-          skip_group = re.compile(r'group-title="(4K频道|熊猫|影视|地方|少儿|教育|其他|体育|印象天下|纪实|综艺|新闻)", re.IGNORECASE)
-          skip_name  = re.compile(r'(cgtnru-MCP|cgtndoc-MCP|cgtn-MCP|CGTNALBY|cctv16-MST|cctv8k-MCP|CGTN外语纪录|CGTN阿拉伯语|CGTN西班牙语|CGBTN法语|CGTN俄语|CGTN|老故事|发现之旅|中学生|四海钓鱼|24小时|最经典|传奇|体坛|精英|cgtnfr|怀旧剧场)', re.IGNORECASE)
+          skip_group = re.compile(r'group-title="(4K频道|熊猫|影视|地方|少儿|教育|其他|体育|印象天下|纪实|综艺|新闻)"')
+          skip_name  = re.compile(r'(cgtnru-MCP|cgtndoc-MCP|cgtn-MCP|CGTNALBY|cctv16-MST|cctv8k-MCP|CGTN外语纪录|CGTN阿拉伯语|CGTN西班牙语|CGTN法语|CGTN俄语|CGTN|老故事|发现之旅|中学生|四海钓鱼|24小时|最经典|传奇|体坛|精英|cgtnfr|怀旧剧场)')
 
-          migu_exclude_name = re.compile(r'(吉林|青海|海南|海峡|中国农林|兵团|河南|陕西|大湾|东南)', re.IGNORECASE)
-          weishi_mcp_exclude = re.compile(r'(云南|兵团|甘肃|新疆|西藏|海南|青海|内蒙古|山西|陕西|河南)', re.IGNORECASE)
+          migu_exclude_name = re.compile(r'(吉林|青海|海南|海峡|中国农林|兵团|河南|陕西|大湾|东南)')
+          weishi_mcp_exclude = re.compile(r'(云南|兵团|甘肃|新疆|西藏|海南|青海|内蒙古|山西|陕西|河南)')
 
-          def is_cctv(extinf):
-              return bool(re.search(r'group-title="[^"]*央视"|CCTV|cctv', extinf, re.IGNORECASE)
+          def is_cctv(extinf): return bool(re.search(r'group-title="[^"]*央视"|CCTV|cctv', extinf))
+          def is_weishi(extinf): return bool(re.search(r'group-title="[^"]*卫视"', extinf))
+          def is_weishi_mcp(extinf): return bool(re.search(r'-MCP', extinf))
 
-          def is_weishi(extinf):
-              return bool(re.search(r'group-title="[^"]*卫视"', extinf, re.IGNORECASE)
-
-          def is_weishi_mcp(url):
-              return bool(re.search(r'MCP', url, re.IGNORECASE)
-
-          i, n = 0, len(body_lines)
-          processed_channels = 0
-
+          i, n = 0, len(body)
           while i < n:
-              if not body_lines[i].startswith("#EXTINF"):
+              if not body[i].startswith("#EXTINF"):
                   i += 1
                   continue
-
-              extinf = body_lines[i]
-              url_line = body_lines[i+1] if (i+1 < n) else ""
-
-             "
-
-              # Skip if URL doesn't start with http
-              if not url_line.startswith('http'):
-                  i                  i += 1
-                  continue
-
-              processed_channels += 1
-
-              # Apply exclusion rules
+              extinf = body[i]
               if skip_group.search(extinf) or skip_name.search(extinf):
                   i += 2
                   continue
-
-              # Categorize channels
-              if is_weishi(extinf) and is_weishi_mcp(url_line):
+              url = body[i+1] if (i+1 < n and body[i+1].startswith("http")) else None
+              if not url:
+                  i += 1
+                  continue
+              # 过滤咪咕
+              if (re.search(r'migu', url, re.I) or
+                   re.search(r'\bmg\b', url, re.I) or
+                   'mgtv.ottiptv.cc' in url.lower()):
+                  if not migu_exclude_name.search(extinf):
+                      migu += [extinf, url]
+              # MCP 卫视过滤
+              elif is_weishi(extinf) and is_weishi_mcp(extinf):
                   if not weishi_mcp_exclude.search(extinf):
-                      weishi_mcp.extend([extinf, url_line])
-              elif is_cctv(extinf):
-                  cctv.extend([extinf, url_line])
+                      weishi_mcp += [extinf, url]
+              # 普通卫视
               elif is_weishi(extinf):
-                  weishi.extend([extinf, url_line])
-              elif ('migu' in url_line.lower() or
-                    'mgtv.ottiptv.cc' in url_line.lower()):
-                  if                  if not migu_exclude_name.search(extinf):
-                      migu.extend([extinf, url_line])
-
+                  weishi += [extinf, url]
+              # 央视
+              elif is_cctv(extinf):
+                  cctv += [extinf, url]
+              # 默认归为卫视
+              else:
+                  weishi += [extinf, url]
               i += 2
 
-          print(f"[INFO] Processed channels: {processed_channels}")
-          print(f"[INFO] Categories - CCTV: {len(cctv)//2}, WeiShi_MCP: {len(weishi_mcp)//2}, WeiShi: {len(weishi)//2}, MiGu: {len(migu)//2}")
+          print(f"[INFO]  央视: {len(cctv)//2}, MCP 卫视: {len(weishi_mcp)//2}, 卫视频道: {len(weishi)//2}")
 
-          # Build output with proper ordering
-          out_lines = []
-          out_lines.extend(header_lines)
-          out_lines.append(UA_HINT)
-          out_lines.extend(cctv)
-          out_lines.extend(weishi_mcp)
-          out_lines.extend(weishi)
-          out_lines.extend(migu)
-
-          # Write final m3u file
+          out_lines = [header0, header1] + cctv + weishi_mcp + weishi 
           with open("li.m3u", "w", encoding="utf-8") as f:
-              f.write("\\n".join(out_lines) + "\\n")
+              f.write("\n".join(out_lines) + "\n")
 
-          # Verify output
           with open("li.m3u", "r", encoding="utf-8") as f:
-              output_content = f.read().split('\\n')
-              print(f"[SUCCESS] Generated li.m3u with {len(output_content)} total lines")
-              print("[INFO] First 30 lines of li.m3u:")
-              for j, line in enumerate(output_content[:30]):
-                  print(f"{j+1}: {line}")
+              print("[INFO] li.m3u 前6行：\n" + "".join(f.readlines()[:6]))
 
-          PYTHON_EOF
-
-      - name: Run processing script
-        run: python3 process_m3u.py
-
-      - name: Verify generated files
-        run: |
-          echo "=== File verification ==="
-          ls -la *.m3u
-          echo "=== li.m3u statistics ==="
-          wc -l li.m3u
-          echo "=== Sample content (first 70 lines) ==="
-          head -n 140 li.m3u | tail -n 130
+          EOF
 
       - name: Commit and push li.m3u changes
+        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        id: commit_m3u
         run: |
-          git config --global user.name "GitHub Actions Bot"
-          git config --global user.email "actions@users.noreply.github.com"
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
           git add li.m3u
-          if git diff --staged --quiet; then
+          if git diff --cached --quiet; then
             echo "No changes to li.m3u to commit."
+            echo "m3u_changed=false" >> "$GITHUB_OUTPUT"
           else
-            git commit -m "Auto-update li.m3u $(date '+%Y-%m-%d %H:%M:%S')"
-            git pull --rebase
+            git commit -m "Update li.m3u"
             git push
-            echo "Changes pushed successfully"
+            echo "m3u_changed=true" >> "$GITHUB_OUTPUT"
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if triggered by GitHub Action
+        if: steps.check_trigger.outputs.trigger_type != 'skip'
+        id: check_commit
+        run: |
+          LAST_COMMIT_AUTHOR=$(git log -1 --pretty=%an)
+          if [[ "$LAST_COMMIT_AUTHOR" == "GitHub Action" ]]; then
+            echo "skip_json=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip_json=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Last commit author: $LAST_COMMIT_AUTHOR"
+
+      - name: Run sync JSON script for UA update
+        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        id: sync_json_ua
+        run: |
+          python sync_json2025.py --update-ua
+          if git diff --quiet 2024.json; then
+            echo "changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run sync JSON script for PNG update
+        if: steps.check_trigger.outputs.trigger_type == 'png_update' && steps.check_commit.outputs.skip_json == 'false'
+        id: sync_json_png
+        run: |
+          python sync_json2025.py --update-png
+          if git diff --quiet 2024.json; then
+            echo "changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push JSON changes
+        if: steps.sync_json_ua.outputs.changes == 'true' || steps.sync_json_png.outputs.changes == 'true'
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add 2024.json
+          git commit -m "Sync JSON: UA or PNG update"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
