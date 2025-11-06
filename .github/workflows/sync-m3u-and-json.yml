@@ -29,18 +29,9 @@ jobs:
         run: |
           echo "Event name: ${{ github.event_name }}"
           echo "Current UTC time: $(date -u)"
-          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "trigger_type=schedule_or_manual" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "trigger_type=png_update" >> "$GITHUB_OUTPUT"
-          else
-            echo "trigger_type=skip" >> "$GITHUB_OUTPUT"
-          fi
+          # 直接设置触发类型，无需复杂的条件判断
+          echo "trigger_type=schedule_or_manual" >> "$GITHUB_OUTPUT"
           echo "Trigger type set to: ${{ steps.check_trigger.outputs.trigger_type }}"
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "Changed files:"
-            git diff --name-only HEAD^ HEAD || echo "No changes detected"
-          fi
 
       - name: Fetch source M3U file
         if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
