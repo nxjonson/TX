@@ -9,8 +9,6 @@ on:
 permissions:
   contents: write
   
-env: M3U_SOURCE_URL: ${{ secrets.M3U_SOURCE_URL }}
-
 jobs:
   sync:
     runs-on: ubuntu-latest
