@@ -44,10 +44,12 @@ jobs:
 
       - name: Fetch source M3U file
         if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        env: 
+         M3U_URL: ${{ secrets.M3U_SOURCE_URL }}
         run: |
           set -e
           # 增加--retry 3（重试3次）和--retry-delay 10（每次重试间隔10秒）确保下载成功
-          curl -fL --retry 3 --retry-delay 10 -o iptv.m3u "$M3U_SOURCE_URL"
+          curl -fL --retry 3 --retry-delay 10 -o iptv.m3u "$M3U_URL"
           echo "Downloaded iptv.m3u lines:" && wc -l iptv.m3u
           echo "First 3 lines of iptv.m3u:" && head -n 3 iptv.m3u
           test -s iptv.m3u || { echo "Error: iptv.m3u is empty or not downloaded after 3 retries"; exit 1; }
