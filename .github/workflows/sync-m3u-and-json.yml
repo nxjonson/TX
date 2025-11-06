@@ -44,6 +44,7 @@ jobs:
 
       - name: Fetch source M3U file
         if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        # 隐藏真实链接,去仓库Settings → Secrets and variables → Actions,点击"New repository secret",Name: M3U_SOURCE_URL,Value: 粘贴您的完整URL
         env: 
          M3U_URL: ${{ secrets.M3U_SOURCE_URL }}
         run: |
