@@ -2,7 +2,7 @@ name: Sync M3U
 
 on:
   schedule:
-    - cron: '20 23 * * *'  # 北京时间每天凌晨7点20分
+    - cron: '05 21 * * *'  # 北京时间每天凌晨5点05分
   
   workflow_dispatch:
 
