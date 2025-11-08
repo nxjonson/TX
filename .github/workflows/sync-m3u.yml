@@ -123,7 +123,14 @@ jobs:
 
           with open("li.m3u", "r", encoding="utf-8") as f:
               print("[INFO] li.m3u 前6行：\n" + "".join(f.readlines()[:6]))
-
+          try:
+              with open("1.m3u", "r", encoding="utf-8") as f:
+                  dmys_content = f.read()
+                  with open("li.m3u", "a", encoding="utf-8") as li_f:
+                      li_f.write(dmys_content)
+                      print("[INFO] 1.m3u 内容已追加到 li.m3u")
+          except FileNotFoundError:
+              print("[ERROR] 未找到 1.m3u 文件")
           EOF
 
       - name: Commit and push li.m3u changes
