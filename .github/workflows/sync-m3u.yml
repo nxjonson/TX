@@ -1,0 +1,152 @@
+name: Sync M3U
+
+on:
+  schedule:
+    - cron: '50 20 * * *'  # 北京时间每天凌晨4点50分
+  
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Check trigger type
+        id: check_trigger
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Current UTC time: $(date -u)"
+          # 直接设置触发类型，无需复杂的条件判断
+          echo "trigger_type=schedule_or_manual" >> "$GITHUB_OUTPUT"
+          echo "Trigger type set to: ${{ steps.check_trigger.outputs.trigger_type }}"
+
+      - name: Fetch source M3U file
+        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        # 隐藏真实链接,去仓库Settings → Secrets and variables → Actions,点击"New repository secret",Name: M3U_SOURCE_URL,Value: 粘贴您的完整URL
+        env: 
+         M3U_URL: ${{ secrets.M3U_SOURCE_URL }}
+        run: |
+          set -e
+          # 增加--retry 3（重试3次）和--retry-delay 15（每次重试间隔15秒）确保下载成功
+          curl -fL --retry 3 --retry-delay 15 -o iptv.m3u "$M3U_URL"
+          echo "Downloaded iptv.m3u lines:" && wc -l iptv.m3u
+          echo "First 3 lines of iptv.m3u:" && head -n 3 iptv.m3u
+          test -s iptv.m3u || { echo "Error: iptv.m3u is empty or not downloaded after 3 retries"; exit 1; }
+    
+      - name: Process & generate li.m3u
+        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        run: |
+          python3 <<'EOF'
+          import re, sys
+          UA_HINT = "##UA-Hint: 请将 User-Agent 设置为 okHttp/Mod-1.4.0.0 ，否则无法观看"
+          try:
+              with open("iptv.m3u", "r", encoding="utf-8", errors="ignore") as f:
+                  lines = f.read().splitlines()
+          except Exception as e:
+              print("[ERROR] 读取 iptv.m3u 失败：", e)
+              sys.exit(1)
+
+          if not lines:
+              print("[ERROR] iptv.m3u 为空")
+              sys.exit(1)
+
+          header0 = lines[0].strip() if lines else "#EXTM3U"
+          header1 = UA_HINT
+          print("[INFO] Header line 1:", header0)
+          print("[INFO] Header line 2:", header1)
+
+          body = lines[2:] if len(lines) > 2 else []
+          weishi, cctv, migu, weishi_mcp = [], [], [], []
+
+          skip_group = re.compile(r'group-title="(4K频道|熊猫|影视|地方|少儿|教育|其他|体育|印象天下|纪实|综艺|新闻)"')
+          skip_name  = re.compile(r'(cgtnru-MCP|cgtndoc-MCP|cgtn-MCP|CGTNALBY|cctv16-MST|cctv8k-MCP|CGTN外语纪录|CGTN阿拉伯语|CGTN西班牙语|CGTN法语|CGTN俄语|CGTN|老故事|发现之旅|中学生|四海钓鱼|24小时|最经典|传奇|体坛|精英|cgtnfr|怀旧剧场)')
+
+          migu_exclude_name = re.compile(r'(吉林|青海|海南|海峡|中国农林|兵团|河南|陕西|大湾|东南)')
+          weishi_mcp_exclude = re.compile(r'(云南|兵团|甘肃|新疆|西藏|海南|青海|内蒙古|山西|陕西|河南)')
+
+          def is_cctv(extinf): return bool(re.search(r'group-title="[^"]*央视"|CCTV|cctv', extinf))
+          def is_weishi(extinf): return bool(re.search(r'group-title="[^"]*卫视"', extinf))
+          def is_weishi_mcp(extinf): return bool(re.search(r'-MCP', extinf))
+
+          i, n = 0, len(body)
+          while i < n:
+              if not body[i].startswith("#EXTINF"):
+                  i += 1
+                  continue
+              extinf = body[i]
+              if skip_group.search(extinf) or skip_name.search(extinf):
+                  i += 2
+                  continue
+              url = body[i+1] if (i+1 < n and body[i+1].startswith("http")) else None
+              if not url:
+                  i += 1
+                  continue
+              # 过滤咪咕
+              if (re.search(r'migu', url, re.I) or
+                   re.search(r'\bmg\b', url, re.I) or
+                   'mgtv.ottiptv.cc' in url.lower()):
+                  if not migu_exclude_name.search(extinf):
+                      migu += [extinf, url]
+              # MCP 卫视过滤
+              elif is_weishi(extinf) and is_weishi_mcp(extinf):
+                  if not weishi_mcp_exclude.search(extinf):
+                      weishi_mcp += [extinf, url]
+              # 普通卫视
+              elif is_weishi(extinf):
+                  weishi += [extinf, url]
+              # 央视
+              elif is_cctv(extinf):
+                  cctv += [extinf, url]
+              # 默认归为卫视
+              else:
+                  weishi += [extinf, url]
+              i += 2
+
+          print(f"[INFO]  央视: {len(cctv)//2}, MCP 卫视: {len(weishi_mcp)//2}, 卫视频道: {len(weishi)//2}")
+
+          out_lines = [header0, header1] + cctv + weishi_mcp + weishi 
+          with open("li.m3u", "w", encoding="utf-8") as f:
+              f.write("\n".join(out_lines) + "\n")
+
+          with open("li.m3u", "r", encoding="utf-8") as f:
+              print("[INFO] li.m3u 前6行：\n" + "".join(f.readlines()[:6]))
+          try:
+              with open("1.m3u", "r", encoding="utf-8") as f:
+                  dmys_content = f.read()
+                  with open("li.m3u", "a", encoding="utf-8") as li_f:
+                      li_f.write(dmys_content)
+                      print("[INFO] 1.m3u 内容已追加到 li.m3u")
+          except FileNotFoundError:
+              print("[ERROR] 未找到 1.m3u 文件")
+          EOF
+
+      - name: Commit and push li.m3u changes
+        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        id: commit_m3u
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add li.m3u
+          if git diff --cached --quiet; then
+            echo "No changes to li.m3u to commit."
+            echo "m3u_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Update li.m3u"
+            git push
+            echo "m3u_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
