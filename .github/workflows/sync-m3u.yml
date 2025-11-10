@@ -45,19 +45,57 @@ jobs:
           echo "Downloaded iptv.m3u lines:" && wc -l iptv.m3u
           echo "First 3 lines of iptv.m3u:" && head -n 3 iptv.m3u
           test -s iptv.m3u || { echo "Error: iptv.m3u is empty or not downloaded after 3 retries"; exit 1; }
-    
+  
       - name: Process & generate li.m3u
         if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
         run: |
           python3 <<'EOF'
           import re, sys
-          UA_HINT = "##UA-Hint: 请将 User-Agent 设置为 okHttp/Mod-1.4.0.0 ，否则无法观看"
-          try:
-              with open("iptv.m3u", "r", encoding="utf-8", errors="ignore") as f:
-                  lines = f.read().splitlines()
-          except Exception as e:
-              print("[ERROR] 读取 iptv.m3u 失败：", e)
-              sys.exit(1)
+    
+        try:
+        with open("iptv.m3u", "", "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()
+        
+          processed_lines = []
+        
+        for i in range(len(lines)):
+            line = lines[i]
+            # 如果是 #EXTINF 行且不包含 http-user-agent，则添加它
+        if line.startswith('#EXTINF') and 'http-user-agent=' not in line:
+                # 查找闭合引号和逗号的位置
+                comma_pos = line.find(',')
+                
+                if comma_pos != -1:
+                   :
+                    # 在逗号前插入 http-user-agent 参数
+                    before_comma = line[:comma_pos]
+                    after_comma = line[comma_pos:]
+                    
+                    # 确保在已有参数后正确添加空格
+                    if                    if before_comma.endswith('"'): 
+                        # 已有其他参数，在后面加个空格
+                        new_line = before_comma + ' http-user-agent="okHttp/Mod-1.4.0.0"' + after_comma
+                    else:
+                        # 没有其他参数或只有基本参数
+                        new_line = before_comma + ' http-user-agent="okHttp/Mod-1.4.0.0"' + after_comma
+                    
+                    processed_lines.append(new_line)
+                else:
+                    # 如果没有逗号，就在行末添加参数
+                    processed_lines.append(line.rstrip() + ' http-user-agent="okHttp/Mod-1.4.0.0"\n')
+            else:
+                processed_lines.append(line)
+        
+        # 写入新文件
+        with open("li.m3u", "", "w", encoding="utf-8") as f:
+            f.writelines(processed_lines)
+            
+        print("[SUCCESS] 已在所有频道条目中添加 http-user-agent 参数")
+            
+        except Exception as e:
+        print(f"[ERROR] 处理文件时出错：{e}")
+        sys.exit(1)
+        EOF
 
           if not lines:
               print("[ERROR] iptv.m3u 为空")
