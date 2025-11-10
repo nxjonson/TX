@@ -70,9 +70,6 @@ jobs:
               exit(1)
           EOF
 
-          if not lines:
-              print("[ERROR] iptv.m3u 为空")
-              sys.exit(1)
 
           header0 = lines[0].strip() if lines else "#EXTM3U"
           header1 = UA_HINT
