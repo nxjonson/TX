@@ -32,7 +32,7 @@ https://edgeone.passwdword.xyz/ofiii.php?token=passwd&id=4gtv-4gtv052
 #EXTINF:-1 tvg-id="中視新聞" tvg-name="中視新聞" tvg-logo="https://cdn.jsdelivr.net/gh/wanglindl/TVlogo@main/img/CTV1.png" group-title="港台新闻",中視新聞
 https://edgeone.passwdword.xyz/ofiii.php?token=passwd&id=4gtv-4gtv074
 #EXTINF:-1 tvg-id="寰宇新聞台灣台" tvg-name="寰宇新聞台灣台" tvg-logo="https://cdn.jsdelivr.net/gh/wanglindl/TVlogo@main/img/Global3.png" group-title="港台新闻",寰宇新聞台灣台
-http://220.135.64.124:5050/4gtv-4gtv009/index.m3u8?proxy=true
+http://220.135.64.124:5050/litv-longturn14/index.m3u8?proxy=true
 https://edgeone.passwdword.xyz/ofiii.php?token=passwd&id=4gtv-4gtv156 
 #EXTINF:-1 tvg-id="三立新聞iNEWS" tvg-name="三立新聞iNEWS" tvg-logo="https://cdn.jsdelivr.net/gh/wanglindl/TVlogo@main/img/SET3.png" group-title="港台新闻",三立新聞iNEWS
 https://edgeone.passwdword.xyz/ofiii.php?token=passwd&id=iNEWS
