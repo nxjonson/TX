@@ -23,7 +23,6 @@ http://php.jdshipin.com:8880/smt.php?id=hkphoenix_twn
 #EXTINF:-1 tvg-id="镜电视新闻台" tvg-name="镜电视新闻台" tvg-logo="https://cdn.jsdelivr.net/gh/wanglindl/TVlogo@main/img/Mnews.png" group-title="港台新闻",镜电视新闻台
 http://188.253.6.73:50500/4gtv-4gtv075/index.m3u8?proxy=true
 #EXTINF:-1 tvg-id="中天新聞台" tvg-name="中天新聞台" tvg-logo="https://cdn.jsdelivr.net/gh/wanglindl/TVlogo@main/img/CTI2.png" group-title="港台新闻",中天新聞台
-http://smtp.tcxlife.com:8080/live/yifatv-ztxw01.m3u8
 http://rihou.cc:8/中天新闻
 http://220.135.64.124:5050/4gtv-4gtv009/index.m3u8?proxy=true
 https://edgeone.passwdword.xyz/ofiii.php?token=passwd&id=4gtv-4gtv009
