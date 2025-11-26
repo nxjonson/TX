@@ -34,7 +34,7 @@ jobs:
       - name: Fetch & process all source files
         if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
         env: 
-          # 第一个源文件（0061）的私密参数
+          # 第一个源文件（原5.txt）的私密参数
           M3U_URL_1: ${{ secrets.M3U_SOURCE_URL }}
           # 第二个源文件（jackTV.m3u）的私密参数
           M3U_URL_2: ${{ secrets.M3U_SOURCE_URL_2 }}
@@ -47,7 +47,8 @@ jobs:
           echo "第一个源文件下载完成，行数: $(wc -l source1.m3u | awk '{print $1}')"
 
           echo -e "\n=== 下载第二个源文件（jackTV.m3u）==="
-          curl -fL --retry 3 --retry-delay 15 -o source2.m3u "$M3U_URL_2"
+          # 为第二个源文件添加 User-Agent 头以避免 403 错误
+          curl -fL --retry 3 --retry-delay 15 -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" -o source2.m3u "$M3U_URL_2"
           test -s source2.m3u || { echo "Error: 第二个源文件下载失败或为空"; exit 1; }
           echo "第二个源文件下载完成，行数: $(wc -l source2.m3u | awk '{print $1}')"
 
