@@ -1,0 +1,187 @@
+name: Sync M3U (Two Sources)
+
+on:
+  schedule:
+    - cron: '5 22 * * *'  # UTC时间22:05 → 北京时间次日6:05
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Check trigger type
+        id: check_trigger
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Current UTC time: $(date -u)"
+          echo "trigger_type=schedule_or_manual" >> "$GITHUB_OUTPUT"
+          echo "Trigger type set to: ${{ steps.check_trigger.outputs.trigger_type }}"
+
+      - name: Fetch & process all source files
+        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        env: 
+          # 第一个源文件（0061）的私密参数
+          M3U_URL_1: ${{ secrets.M3U_SOURCE_URL }}
+          # 第二个源文件（jackTV.m3u）的私密参数
+          M3U_URL_2: ${{ secrets.M3U_SOURCE_URL_2 }}
+        run: |
+          set -e
+          # 1. 下载两个源文件（添加3次重试，间隔15秒）
+          echo "=== 下载第一个源文件（0061）==="
+          curl -fL --retry 3 --retry-delay 15 -o source1.m3u "$M3U_URL_1"
+          test -s source1.m3u || { echo "Error: 第一个源文件下载失败或为空"; exit 1; }
+          echo "第一个源文件下载完成，行数: $(wc -l source1.m3u | awk '{print $1}')"
+
+          echo -e "\n=== 下载第二个源文件（jackTV.m3u）==="
+          curl -fL --retry 3 --retry-delay 15 -o source2.m3u "$M3U_URL_2"
+          test -s source2.m3u || { echo "Error: 第二个源文件下载失败或为空"; exit 1; }
+          echo "第二个源文件下载完成，行数: $(wc -l source2.m3u | awk '{print $1}')"
+
+          # 2. 处理第一个源文件（完全保留原始过滤逻辑）
+          echo -e "\n=== 处理第一个源文件（保留原始过滤规则）==="
+          python3 <<'EOF'
+          import re, sys
+          UA_HINT = "##UA-Hint: 请将 User-Agent 设置为 okHttp/Mod-1.4.0.0 ，否则无法观看"
+          try:
+              with open("source1.m3u", "r", encoding="utf-8", errors="ignore") as f:
+                  lines = f.read().splitlines()
+          except Exception as e:
+              print("[ERROR] 读取第一个源文件失败：", e)
+              sys.exit(1)
+          if not lines:
+              print("[ERROR] 第一个源文件为空")
+              sys.exit(1)
+          header0 = lines[0].strip() if lines else "#EXTM3U"
+          header1 = UA_HINT
+          body = lines[2:] if len(lines) > 2 else lines[1:]
+          weishi, cctv, migu, weishi_mcp = [], [], [], []
+          # 原始过滤规则（完全保留）
+          skip_group = re.compile(r'group-title="(4K频道|熊猫|影视|地方|少儿|教育|其他|体育|印象天下|纪实|综艺|新闻)"')
+          skip_name  = re.compile(r'(cgtnru-MCP|cgtndoc-MCP|cgtn-MCP|CGTNALBY|cctv16-MST|cctv8k-MCP|CGTN外语纪录|CGTN阿拉伯语|CGTN西班牙语|CGTN法语|CGTN俄语|CGTN|老故事|发现之旅|中学生|四海钓鱼|24小时|最经典|传奇|体坛|精英|cgtnfr|怀旧剧场)')
+          migu_exclude_name = re.compile(r'(吉林|青海|海南|海峡|中国农林|兵团|河南|陕西|大湾|东南)')
+          weishi_mcp_exclude = re.compile(r'(云南|兵团|甘肃|新疆|西藏|海南|青海|内蒙古|山西|陕西|河南)')
+          def is_cctv(extinf): return bool(re.search(r'group-title="[^"]*央视"|CCTV|cctv', extinf))
+          def is_weishi(extinf): return bool(re.search(r'group-title="[^"]*卫视"', extinf))
+          def is_weishi_mcp(extinf): return bool(re.search(r'-MCP', extinf))
+          i, n = 0, len(body)
+          while i < n:
+              if not body[i].startswith("#EXTINF"):
+                  i += 1
+                  continue
+              extinf = body[i]
+              if skip_group.search(extinf) or skip_name.search(extinf):
+                  i += 2
+                  continue
+              url = body[i+1] if (i+1 < n and body[i+1].startswith("http")) else None
+              if not url:
+                  i += 1
+                  continue
+              if (re.search(r'migu', url, re.I) or re.search(r'\bmg\b', url, re.I) or 'mgtv.ottiptv.cc' in url.lower()):
+                  if not migu_exclude_name.search(extinf):
+                      migu += [extinf, url]
+              elif is_weishi(extinf) and is_weishi_mcp(extinf):
+                  if not weishi_mcp_exclude.search(extinf):
+                      weishi_mcp += [extinf, url]
+              elif is_weishi(extinf):
+                  weishi += [extinf, url]
+              elif is_cctv(extinf):
+                  cctv += [extinf, url]
+              else:
+                  weishi += [extinf, url]
+              i += 2
+          out_lines = [header0, header1] + cctv + weishi_mcp + weishi + migu
+          with open("processed1.m3u", "w", encoding="utf-8") as f:
+              f.write("\n".join(out_lines) + "\n")
+          print(f"第一个源文件处理完成：央视{len(cctv)//2}个，MCP卫视{len(weishi_mcp)//2}个，普通卫视{len(weishi)//2}个，咪咕{len(migu)//2}个")
+          EOF
+
+          # 3. 处理第二个源文件（只保留"SMT-香港"和"SMT-台湾"分组）
+          echo -e "\n=== 处理第二个源文件（仅保留指定分组）==="
+          python3 <<'EOF'
+          import re, sys
+          def filter_smt_groups(input_file, output_file):
+              keep_groups = {"SMT-香港", "SMT-台湾"}
+              output_lines = []
+              in_keep_group = False
+              try:
+                  with open(input_file, "r", encoding="utf-8", errors="ignore") as f:
+                      lines = f.read().splitlines()
+              except Exception as e:
+                  print("[ERROR] 读取第二个源文件失败：", e)
+                  sys.exit(1)
+              # 保留M3U头部（第一行#EXTM3U）
+              if lines and lines[0].startswith("#EXTM3U"):
+                  output_lines.append(lines[0])
+              # 遍历处理每一行
+              for line in lines[1:]:
+                  line_stripped = line.strip()
+                  # 匹配EXTINF行，提取group-title
+                  if line_stripped.startswith("#EXTINF:") and 'group-title=' in line_stripped:
+                      group_match = re.search(r'group-title="([^"]+)"', line_stripped)
+                      if group_match and group_match.group(1) in keep_groups:
+                          in_keep_group = True
+                          output_lines.append(line)
+                      else:
+                          in_keep_group = False
+                  # 如果在需要保留的分组中，添加后续行（URL或额外参数行）
+                  elif in_keep_group:
+                      output_lines.append(line)
+                      # 遇到下一个EXTINF行时，重置标记（避免跨分组污染）
+                      if line_stripped.startswith("#EXTINF:"):
+                          in_keep_group = False
+              # 写入处理后的文件
+              with open(output_file, "w", encoding="utf-8") as f:
+                  f.write("\n".join(output_lines) + "\n")
+              print(f"第二个源文件处理完成，保留频道数：{len([l for l in output_lines if l.startswith('#EXTINF:')])}")
+          if __name__ == "__main__":
+              filter_smt_groups("source2.m3u", "processed2.m3u")
+          EOF
+
+          # 4. 合并两个处理后的文件到x.m3u（文件名修改为x）
+          echo -e "\n=== 合并文件 ==="
+          cat processed1.m3u > x.m3u  # 输出文件改为x.m3u
+          # 如果第二个文件有有效内容，添加分隔符后合并
+          if [ -s processed2.m3u ] && [ $(grep -c "^#EXTINF:" processed2.m3u) -gt 0 ]; then
+              echo -e "\n# === SMT-香港 & SMT-台湾 频道 ===" >> x.m3u
+              cat processed2.m3u >> x.m3u
+          fi
+          # 追加1.m3u（保留原始逻辑）
+          if [ -f "1.m3u" ]; then
+              echo -e "\n# === 追加1.m3u内容 ===" >> x.m3u
+              cat 1.m3u >> x.m3u
+              echo "已追加1.m3u内容"
+          fi
+          echo "最终x.m3u文件行数：$(wc -l x.m3u | awk '{print $1}')"
+          echo "最终x.m3u频道数：$(grep -c "^#EXTINF:" x.m3u)"
+
+      - name: Commit and push x.m3u changes
+        if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
+        id: commit_m3u
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add x.m3u  # 提交x.m3u
+          if git diff --cached --quiet; then
+            echo "No changes to x.m3u to commit."
+            echo "m3u_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Update x.m3u (auto-sync from 2 sources) - $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            git push
+            echo "m3u_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
