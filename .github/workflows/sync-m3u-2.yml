@@ -1,4 +1,4 @@
-name: Sync M3U (Two Sources)
+name: Sync M3U (Two Sources - Simple Version)
 
 on:
   schedule:
@@ -34,26 +34,17 @@ jobs:
       - name: Fetch & process all source files
         if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
         env: 
-          # 第一个源文件（原5.txt）的私密参数
-          M3U_URL_1: ${{ secrets.M3U_SOURCE_URL }}
-          # 第二个源文件（jackTV.m3u）的私密参数
-          M3U_URL_2: ${{ secrets.M3U_SOURCE_URL_2 }}
+          M3U_URL_1: ${{ secrets.M3U_SOURCE_URL }}  # 第一个源文件（原5.txt）
+          M3U_URL_2: ${{ secrets.M3U_SOURCE_URL_2 }}  # 第二个源文件（jackTV.m3u）
         run: |
           set -e
-          # 1. 下载两个源文件（添加3次重试，间隔15秒）
-          echo "=== 下载第一个源文件（0061）==="
+          # 1. 处理第一个源文件（正常下载+处理，失败则终止）
+          echo "=== 处理第一个源文件 ==="
           curl -fL --retry 3 --retry-delay 15 -o source1.m3u "$M3U_URL_1"
-          test -s source1.m3u || { echo "Error: 第一个源文件下载失败或为空"; exit 1; }
+          test -s source1.m3u || { echo "Error: 第一个源文件下载失败"; exit 1; }
           echo "第一个源文件下载完成，行数: $(wc -l source1.m3u | awk '{print $1}')"
 
-          echo -e "\n=== 下载第二个源文件（jackTV.m3u）==="
-          # 为第二个源文件添加 User-Agent 头以避免 403 错误
-          curl -fL --retry 3 --retry-delay 15 -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" -o source2.m3u "$M3U_URL_2"
-          test -s source2.m3u || { echo "Error: 第二个源文件下载失败或为空"; exit 1; }
-          echo "第二个源文件下载完成，行数: $(wc -l source2.m3u | awk '{print $1}')"
-
-          # 2. 处理第一个源文件（完全保留原始过滤逻辑）
-          echo -e "\n=== 处理第一个源文件（保留原始过滤规则）==="
+          # 第一个源文件过滤（保留原始逻辑）
           python3 <<'EOF'
           import re, sys
           UA_HINT = "##UA-Hint: 请将 User-Agent 设置为 okHttp/Mod-1.4.0.0 ，否则无法观看"
@@ -63,14 +54,10 @@ jobs:
           except Exception as e:
               print("[ERROR] 读取第一个源文件失败：", e)
               sys.exit(1)
-          if not lines:
-              print("[ERROR] 第一个源文件为空")
-              sys.exit(1)
           header0 = lines[0].strip() if lines else "#EXTM3U"
           header1 = UA_HINT
           body = lines[2:] if len(lines) > 2 else lines[1:]
           weishi, cctv, migu, weishi_mcp = [], [], [], []
-          # 原始过滤规则（完全保留）
           skip_group = re.compile(r'group-title="(4K频道|熊猫|影视|地方|少儿|教育|其他|体育|印象天下|纪实|综艺|新闻)"')
           skip_name  = re.compile(r'(cgtnru-MCP|cgtndoc-MCP|cgtn-MCP|CGTNALBY|cctv16-MST|cctv8k-MCP|CGTN外语纪录|CGTN阿拉伯语|CGTN西班牙语|CGTN法语|CGTN俄语|CGTN|老故事|发现之旅|中学生|四海钓鱼|24小时|最经典|传奇|体坛|精英|cgtnfr|怀旧剧场)')
           migu_exclude_name = re.compile(r'(吉林|青海|海南|海峡|中国农林|兵团|河南|陕西|大湾|东南)')
@@ -110,79 +97,74 @@ jobs:
           print(f"第一个源文件处理完成：央视{len(cctv)//2}个，MCP卫视{len(weishi_mcp)//2}个，普通卫视{len(weishi)//2}个，咪咕{len(migu)//2}个")
           EOF
 
-          # 3. 处理第二个源文件（只保留"SMT-香港"和"SMT-台湾"分组）
-          echo -e "\n=== 处理第二个源文件（仅保留指定分组）==="
-          python3 <<'EOF'
-          import re, sys
-          def filter_smt_groups(input_file, output_file):
-              keep_groups = {"SMT-香港", "SMT-台湾"}
-              output_lines = []
-              in_keep_group = False
-              try:
+          # 2. 处理第二个源文件（尝试下载，失败则跳过，不影响整体）
+          echo -e "\n=== 尝试下载第二个源文件 ==="
+          # 简单模拟浏览器User-Agent，不添加复杂请求头
+          curl -fL --retry 3 --retry-delay 15 \
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+            -o source2.m3u "$M3U_URL_2" || echo "警告：第二个源文件下载失败，跳过处理"
+
+          # 第二个源文件过滤（仅当下载成功时执行）
+          if [ -s source2.m3u ]; then
+              echo "第二个源文件下载完成，行数: $(wc -l source2.m3u | awk '{print $1}')"
+              echo -e "\n=== 处理第二个源文件（仅保留SMT-香港&台湾）==="
+              python3 <<'EOF'
+              import re, sys
+              def filter_smt_groups(input_file, output_file):
+                  keep_groups = {"SMT-香港", "SMT-台湾"}
+                  output_lines = []
+                  in_keep_group = False
                   with open(input_file, "r", encoding="utf-8", errors="ignore") as f:
                       lines = f.read().splitlines()
-              except Exception as e:
-                  print("[ERROR] 读取第二个源文件失败：", e)
-                  sys.exit(1)
-              # 保留M3U头部（第一行#EXTM3U）
-              if lines and lines[0].startswith("#EXTM3U"):
-                  output_lines.append(lines[0])
-              # 遍历处理每一行
-              for line in lines[1:]:
-                  line_stripped = line.strip()
-                  # 匹配EXTINF行，提取group-title
-                  if line_stripped.startswith("#EXTINF:") and 'group-title=' in line_stripped:
-                      group_match = re.search(r'group-title="([^"]+)"', line_stripped)
-                      if group_match and group_match.group(1) in keep_groups:
-                          in_keep_group = True
+                  if lines and lines[0].startswith("#EXTM3U"):
+                      output_lines.append(lines[0])
+                  for line in lines[1:]:
+                      line_stripped = line.strip()
+                      if line_stripped.startswith("#EXTINF:") and 'group-title=' in line_stripped:
+                          group_match = re.search(r'group-title="([^"]+)"', line_stripped)
+                          if group_match and group_match.group(1) in keep_groups:
+                              in_keep_group = True
+                              output_lines.append(line)
+                          else:
+                              in_keep_group = False
+                      elif in_keep_group:
                           output_lines.append(line)
-                      else:
-                          in_keep_group = False
-                  # 如果在需要保留的分组中，添加后续行（URL或额外参数行）
-                  elif in_keep_group:
-                      output_lines.append(line)
-                      # 遇到下一个EXTINF行时，重置标记（避免跨分组污染）
-                      if line_stripped.startswith("#EXTINF:"):
-                          in_keep_group = False
-              # 写入处理后的文件
-              with open(output_file, "w", encoding="utf-8") as f:
-                  f.write("\n".join(output_lines) + "\n")
-              print(f"第二个源文件处理完成，保留频道数：{len([l for l in output_lines if l.startswith('#EXTINF:')])}")
-          if __name__ == "__main__":
+                          if line_stripped.startswith("#EXTINF:"):
+                              in_keep_group = False
+                  with open(output_file, "w", encoding="utf-8") as f:
+                      f.write("\n".join(output_lines) + "\n")
+                  print(f"第二个源文件处理完成，保留频道数：{len([l for l in output_lines if l.startswith('#EXTINF:')])}")
               filter_smt_groups("source2.m3u", "processed2.m3u")
-          EOF
+              EOF
+          else:
+              touch processed2.m3u  # 创建空文件，避免合并报错
+          fi
 
-          # 4. 合并两个处理后的文件到x.m3u（文件名修改为x）
+          # 3. 合并为x.m3u
           echo -e "\n=== 合并文件 ==="
-          cat processed1.m3u > x.m3u  # 输出文件改为x.m3u
-          # 如果第二个文件有有效内容，添加分隔符后合并
+          cat processed1.m3u > x.m3u
           if [ -s processed2.m3u ] && [ $(grep -c "^#EXTINF:" processed2.m3u) -gt 0 ]; then
               echo -e "\n# === SMT-香港 & SMT-台湾 频道 ===" >> x.m3u
               cat processed2.m3u >> x.m3u
           fi
-          # 追加1.m3u（保留原始逻辑）
           if [ -f "1.m3u" ]; then
               echo -e "\n# === 追加1.m3u内容 ===" >> x.m3u
               cat 1.m3u >> x.m3u
-              echo "已追加1.m3u内容"
           fi
           echo "最终x.m3u文件行数：$(wc -l x.m3u | awk '{print $1}')"
           echo "最终x.m3u频道数：$(grep -c "^#EXTINF:" x.m3u)"
 
       - name: Commit and push x.m3u changes
         if: steps.check_trigger.outputs.trigger_type == 'schedule_or_manual'
-        id: commit_m3u
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add x.m3u  # 提交x.m3u
+          git add x.m3u
           if git diff --cached --quiet; then
             echo "No changes to x.m3u to commit."
-            echo "m3u_changed=false" >> "$GITHUB_OUTPUT"
           else
-            git commit -m "Update x.m3u (auto-sync from 2 sources) - $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            git commit -m "Update x.m3u (auto-sync) - $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
             git push
-            echo "m3u_changed=true" >> "$GITHUB_OUTPUT"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
