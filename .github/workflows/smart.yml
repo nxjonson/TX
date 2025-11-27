@@ -1,0 +1,53 @@
+name: smart
+
+on:
+  schedule:
+    - cron: '45 21 * * *'  # UTC 21:45 = 北京时间 5:45
+  workflow_dispatch:       # 允许手动触发
+
+jobs:
+  filter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download smart.m3u
+        run: |
+          curl -o smart.m3u "https://raw.githubusercontent.com/judy-gotv/iptv/refs/heads/main/smart.m3u"
+
+      - name: Filter and append to 1.m3u
+        run: |
+          python3 <<'PY'
+          import re
+
+          input_file = "smart.m3u"
+          output_file = "1.m3u"
+
+          allowed_groups = {"GPT-台湾", "GPT-香港"}
+
+          with open(input_file, "r", encoding="utf-8") as f_in, \
+               open(output_file, "a", encoding="utf-8") as f_out:
+
+              write_next = False
+              for line in f_in:
+                  line = line.strip()
+                  if line.startswith("#EXTINF"):
+                      match = re.search(r'group-title="([^"]+)"', line)
+                      if match and match.group(1) in allowed_groups:
+                          f_out.write(line + "\n")
+                          write_next = True
+                      else:
+                          write_next = False
+                  elif write_next and not line.startswith("#"):
+                      f_out.write(line + "\n")
+                      write_next = False
+          PY
+
+      - name: Commit and push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add 1.m3u
+          git diff --staged --quiet || git commit -m "Auto-append: add Taiwan and Hong Kong channels to 1.m3u"
+          git push
