@@ -24,7 +24,7 @@ jobs:
           input_file = "smart.m3u"
           output_file = "1.m3u"
 
-          allowed_groups = {"GPT-台湾", "GPT-香港"}
+          allowed_groups = {"GPT-台湾"}  # 只保留台湾分组
 
           # 读取仓库已有的 1.m3u，用于去重
           try:
@@ -62,5 +62,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add 1.m3u
-          git diff --staged --quiet || git commit -m "Auto-append: add new Taiwan and Hong Kong channels to 1.m3u (deduped)"
+          git diff --staged --quiet || git commit -m "Auto-append: add new Taiwan channels to 1.m3u (deduped)"
           git push
