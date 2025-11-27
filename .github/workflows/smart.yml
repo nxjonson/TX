@@ -16,7 +16,7 @@ jobs:
         run: |
           curl -o smart.m3u "https://raw.githubusercontent.com/judy-gotv/iptv/refs/heads/main/smart.m3u"
 
-      - name: Filter and append to 1.m3u
+      - name: Filter and deduplicate M3U
         run: |
           python3 <<'PY'
           import re
@@ -26,22 +26,35 @@ jobs:
 
           allowed_groups = {"GPT-台湾", "GPT-香港"}
 
-          with open(input_file, "r", encoding="utf-8") as f_in, \
-               open(output_file, "a", encoding="utf-8") as f_out:
+          # 读取仓库已有的 1.m3u，用于去重
+          try:
+              with open(output_file, "r", encoding="utf-8") as f_existing:
+                  existing_lines = set(f_existing.read().splitlines())
+          except FileNotFoundError:
+              existing_lines = set()
 
+          # 读取并过滤 smart.m3u
+          new_entries = []
+          with open(input_file, "r", encoding="utf-8") as f_in:
               write_next = False
               for line in f_in:
                   line = line.strip()
                   if line.startswith("#EXTINF"):
                       match = re.search(r'group-title="([^"]+)"', line)
                       if match and match.group(1) in allowed_groups:
-                          f_out.write(line + "\n")
+                          new_entries.append(line)
                           write_next = True
                       else:
                           write_next = False
                   elif write_next and not line.startswith("#"):
-                      f_out.write(line + "\n")
+                      new_entries.append(line)
                       write_next = False
+
+          # 追加新内容到 1.m3u
+          with open(output_file, "a", encoding="utf-8") as f_out:
+              for entry in new_entries:
+                  if entry not in existing_lines:
+                      f_out.write(entry + "\n")
           PY
 
       - name: Commit and push
@@ -49,5 +62,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add 1.m3u
-          git diff --staged --quiet || git commit -m "Auto-append: add Taiwan and Hong Kong channels to 1.m3u"
+          git diff --staged --quiet || git commit -m "Auto-append: add new Taiwan and Hong Kong channels to 1.m3u (deduped)"
           git push
