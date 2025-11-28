@@ -2,7 +2,7 @@ name: smart
 
 on:
   schedule:
-    - cron: '45 21 * * *'  # UTC 21:45 = 北京时间 5:45
+    - cron: '45 21 */2 * *'  # UTC 21:45 每两天运行一次（北京时间 5:45）
   workflow_dispatch:       # 允许手动触发
 
 jobs:
@@ -60,7 +60,4 @@ jobs:
       - name: Commit and push
         run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add 1.m3u
-          git diff --staged --quiet || git commit -m "Auto-append: add new Taiwan channels to 1.m3u (deduped)"
-          git push
+          git config --global user.email "github-actio
