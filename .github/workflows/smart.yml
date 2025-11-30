@@ -3,7 +3,7 @@ name: smart
 on:
   schedule:
     - cron: '45 21 */2 * *'
-  workflow_dispatch:  # 就是这样，不带 true
+  workflow_dispatch:
 
 jobs:
   filter:
@@ -15,38 +15,83 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download and process playlist
+      - name: Download and process playlists
         run: |
+          # 下载第一个源文件
           curl -s -o /tmp/smart.m3u "https://raw.githubusercontent.com/judy-gotv/iptv/refs/heads/main/smart.m3u"
+          # 下载第二个源文件
+          curl -s -o /tmp/4gtv_list.txt "http://2099.tv12.xyz/list.txt"
+
           python3 <<'PY'
           import re
-          input_file = "/tmp/smart.m3u"
+
+          # --- 配置 ---
+          # 源1配置
+          source1_file = "/tmp/smart.m3u"
+          allowed_group1 = "GPT-台湾"
+
+          # 源2配置
+          source2_file = "/tmp/4gtv_list.txt"
+          allowed_group2 = "4Gtv"
+
+          # 输出文件
           output_file = "1.m3u"
-          allowed_groups = {"GPT-台湾"}
+          # --- 配置结束 ---
+
+          # 读取旧文件，用于去重
+          existing_lines = set()
           try:
-              with open(output_file, "r", encoding="utf-8") as f_existing:
-                  existing_lines = set(f_existing.read().splitlines())
+              with open(output_file, "r", encoding="utf-8") as f:
+                  existing_lines = set(line.strip() for line in f if line.strip())
           except FileNotFoundError:
-              existing_lines = set()
-          new_entries = []
-          with open(input_file, "r", encoding="utf-8") as f_in:
-              write_next = False
-              for line in f_in:
-                  line = line.strip()
-                  if line.startswith("#EXTINF"):
-                      match = re.search(r'group-title="([^"]+)"', line)
-                      if match and match.group(1) in allowed_groups:
-                          new_entries.append(line)
-                          write_next = True
-                      else:
-                          write_next = False
-                  elif write_next and not line.startswith("#"):
-                      new_entries.append(line)
-                      write_next = False
+              print(f"{output_file} not found, will create a new one.")
+
+          # 存放所有新频道的集合（自动去重）
+          all_new_entries = set()
+
+          # --- 处理第一个源 ---
+          print(f"Processing {source1_file} for group '{allowed_group1}'...")
+          try:
+              with open(source1_file, "r", encoding="utf-8") as f_in:
+                  content = f_in.read()
+                  # 使用正则表达式匹配 EXTINF 行和其后的 URL 行
+                  matches = re.findall(r"(#EXTINF:-1.*?group-title=\"([^\"]*?)\".*?\n)([^\n]+)", content)
+                  for extinf_line, group_title, url_line in matches:
+                      if group_title == allowed_group1:
+                          # 将 EXTINF 行和 URL 行合并为一个条目
+                          all_new_entries.add(f"{extinf_line.strip()}\n{url_line.strip()}")
+          except FileNotFoundError:
+              print(f"Warning: {source1_file} not found.")
+          
+          print(f"Found {len(all_new_entries)} new entries from source 1.")
+
+          # --- 处理第二个源 ---
+          print(f"Processing {source2_file} for group '{allowed_group2}'...")
+          try:
+              with open(source2_file, "r", encoding="utf-8") as f_in:
+                  content = f_in.read()
+                  # 使用相同的正则表达式匹配
+                  matches = re.findall(r"(#EXTINF:-1.*?group-title=\"([^\"]*?)\".*?\n)([^\n]+)", content)
+                  for extinf_line, group_title, url_line in matches:
+                      if group_title == allowed_group2:
+                          all_new_entries.add(f"{extinf_line.strip()}\n{url_line.strip()}")
+          except FileNotFoundError:
+              print(f"Warning: {source2_file} not found.")
+
+          print(f"Found a total of {len(all_new_entries)} unique new entries from both sources.")
+
+          # --- 写入新内容 ---
+          entries_to_write_count = 0
           with open(output_file, "a", encoding="utf-8") as f_out:
-              for entry in new_entries:
-                  if entry not in existing_lines:
-                      f_out.write(entry + "\n")
+              for entry in all_new_entries:
+                  # 检查条目的URL部分是否已存在，实现更健壮的去重
+                  entry_url = entry.split('\n')[-1]
+                  if entry_url not in {line.split('\n')[-1] for line in existing_lines}:
+                       f_out.write(entry + "\n")
+                       entries_to_write_count += 1
+                       existing_lines.add(entry) # 更新已存在集合，防止本次运行中重复写入
+
+          print(f"Successfully appended {entries_to_write_count} new entries to {output_file}.")
           PY
 
       - name: Commit and push
@@ -55,6 +100,8 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add 1.m3u
           if ! git diff --staged --quiet; then
-            git commit -m "Auto update smart playlist"
+            git commit -m "Auto update playlist (GPT-台湾 & 4Gtv)"
             git push
+          else
+            echo "No new entries to commit."
           fi
