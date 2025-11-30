@@ -12,6 +12,8 @@ source2_file = "/tmp/4gtv_list.txt"
 source2_group = "4Gtv"  # 纯文本URL列表的默认分组
 
 output_file = "1.m3u"
+# 无效频道名列表（用于清理旧条目）
+INVALID_CHANNEL_NAMES = ["4Gtv", "港台", "内地", "国外"]
 # --- 配置结束 ---
 
 def download_file(url, save_path):
@@ -99,7 +101,7 @@ def parse_plain_text_urls(file_path, group_name):
             if not (url.startswith(("http://", "https://")) and len(url) > 10):
                 continue
             # 5. 过滤无意义的频道名（如分组名、太短的名称）
-            if channel_name in ["4Gtv", "港台", "内地", "国外"] or len(channel_name) < 2:
+            if channel_name in INVALID_CHANNEL_NAMES or len(channel_name) < 2:
                 continue
             # 构造标准 M3U 格式
             extinf_line = f'#EXTINF:-1 group-title="{group_name}",{channel_name}\n'
@@ -109,6 +111,45 @@ def parse_plain_text_urls(file_path, group_name):
     except Exception as e:
         print(f"Error parsing {file_path}: {e}")
     return entries
+
+def clean_old_invalid_entries(output_file):
+    """清理旧文件中的无效条目（4Gtv、港台等）"""
+    if not Path(output_file).exists():
+        return set()  # 文件不存在，返回空集合
+    
+    valid_entries = []
+    valid_urls = set()
+    current_extinf = ""
+    
+    try:
+        with open(output_file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            for line in lines:
+                line_stripped = line.strip()
+                if line.startswith("#EXTINF:"):
+                    # 检查是否为无效频道名
+                    channel_match = re.search(r',([^,]+)$', line)
+                    if channel_match and channel_match.group(1) in INVALID_CHANNEL_NAMES:
+                        current_extinf = ""  # 标记为无效，后续URL不保留
+                    else:
+                        current_extinf = line
+                elif line_stripped and not line_stripped.startswith("#") and current_extinf:
+                    # 有效URL，添加到列表和去重集合
+                    valid_entries.append(f"{current_extinf}{line}")
+                    valid_urls.add(line_stripped)
+                elif line.startswith("#EXTM3U"):
+                    # 保留文件头部
+                    valid_entries.append(line)
+    except Exception as e:
+        print(f"Error cleaning old entries: {e}")
+        return set()
+    
+    # 重写清理后的文件
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.writelines(valid_entries)
+    
+    print(f"Cleaned old invalid entries. Kept {len(valid_entries)} valid lines.")
+    return valid_urls
 
 # 下载文件
 download_success = True
@@ -121,24 +162,23 @@ if not download_success:
     print("Some files failed to download. Exiting.")
     exit(1)
 
-# 读取旧文件URL去重
-existing_urls = set()
+# 清理旧文件中的无效条目，并获取有效URL（用于去重）
+existing_urls = clean_old_invalid_entries(output_file)
 output_path = Path(output_file)
-file_header = "#EXTM3U x-tvg-url=\"https://epg.tv.darwinchow.com/epg.xml\"\n"  # 保留原文件的EPG配置
+file_header = "#EXTM3U x-tvg-url=\"https://epg.tv.darwinchow.com/epg.xml\"\n"
 
+# 确保文件头部存在
 if output_path.exists():
-    try:
-        with open(output_file, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-            # 保留原文件头部（如果存在）
-            for line in lines:
-                stripped_line = line.strip()
-                if stripped_line and not stripped_line.startswith("#"):
-                    existing_urls.add(stripped_line)
-    except Exception as e:
-        print(f"Error reading {output_file}: {e}")
+    with open(output_file, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+        if not lines or not lines[0].startswith("#EXTM3U"):
+            lines.insert(0, file_header)
+            with open(output_file, "w", encoding="utf-8") as f_out:
+                f_out.writelines(lines)
 else:
-    print(f"'{output_file}' not found, creating new.")
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(file_header)
+    print(f"'{output_file}' not found, created new file with header.")
 
 # --- 处理第一个源（标准 M3U）---
 print(f"--- Processing {source1_file} for group '{allowed_group1}' ---")
@@ -150,36 +190,31 @@ print(f"--- Processing {source2_file} as plain text URLs (group: '{source2_group
 new_entries_source2 = parse_plain_text_urls(source2_file, source2_group)
 print(f"Found {len(new_entries_source2)} entries in '{source2_group}'.")
 
-# 合并去重（在两个分组之间添加两个空行）
-all_new_entries = new_entries_source1
+# 合并条目（确保分组间空两行）
+final_entries = []
+# 添加第一个分组有效条目
+final_entries.extend(new_entries_source1)
+# 两个分组都有内容时，插入两个空行
 if new_entries_source1 and new_entries_source2:
-    all_new_entries.append("\n\n")  # 分组间添加两个空行
-all_new_entries += new_entries_source2
+    final_entries.append("\n\n")
+# 添加第二个分组有效条目
+final_entries.extend(new_entries_source2)
 
+# 去重并收集新条目
 entries_to_write = []
-for entry in all_new_entries:
-    # 空行无需去重，直接添加
+for entry in final_entries:
     if entry.strip() == "":
         entries_to_write.append(entry)
         continue
-    # URL去重
     url = entry.splitlines()[-1].strip()
     if url not in existing_urls:
         entries_to_write.append(entry)
         existing_urls.add(url)
 
-# 写入文件（确保头部唯一）
+# 追加新条目到文件
 if entries_to_write:
-    with open(output_file, "a+", encoding="utf-8") as f_out:
-        f_out.seek(0)
-        first_line = f_out.readline()
-        # 如果文件为空或无头部，添加标准头部
-        if not first_line.startswith("#EXTM3U"):
-            f_out.write(file_header)
-        
-        f_out.seek(0, 2)  # 移动到文件末尾
-        for entry in entries_to_write:
-            f_out.write(entry)
+    with open(output_file, "a", encoding="utf-8") as f_out:
+        f_out.writelines(entries_to_write)
     print(f"\nSUCCESS: Appended {len(entries_to_write)} new entries to '{output_file}'.")
 else:
     print("\nINFO: No new unique entries found.")
