@@ -35,9 +35,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Download and process playlists
+      # 核心改进：用 echo 写入脚本文件，彻底避免 YAML 多行缩进冲突
+      - name: Create process script
         run: |
-          python3 << 'PY'
+          cat > /tmp/process_playlist.py << 'EOF'
 import re
 import requests
 from pathlib import Path
@@ -164,7 +165,10 @@ if entries_to_write:
     print(f"\nSUCCESS: Appended {len(entries_to_write)} new entries to '{output_file}'.")
 else:
     print("\nINFO: No new unique entries found.")
-PY
+EOF
+
+      - name: Run process script
+        run: python3 /tmp/process_playlist.py
 
       - name: Commit and push
         run: |
