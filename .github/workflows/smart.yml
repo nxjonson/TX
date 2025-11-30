@@ -38,23 +38,25 @@ jobs:
           output_file = "1.m3u"
           # --- 配置结束 ---
 
-          def parse_m3u(file_path, allowed_group):
-              """安全地解析 M3U 文件，返回指定分组的频道列表"""
+          def parse_m3u_robust(file_path, allowed_group):
+              """更健壮地解析 M3U 文件，返回指定分组的频道列表"""
               entries = []
+              # 使用正则表达式提取 group-title 的值，处理单/双引号和空格
+              group_title_regex = re.compile(r'group-title\s*=\s*["\']([^"\']+)["\']')
+              
               try:
                   with open(file_path, "r", encoding="utf-8") as f:
                       extinf_line = ""
                       for line in f:
                           line = line.strip()
                           if line.startswith("#EXTINF:"):
-                              if f'group-title="{allowed_group}"' in line:
+                              match = group_title_regex.search(line)
+                              if match and match.group(1) == allowed_group:
                                   extinf_line = line
                           elif extinf_line and line and not line.startswith("#"):
-                              # 如果上一行是目标EXTINF，且当前行是URL，则保存
                               entries.append(f"{extinf_line}\n{line}")
-                              extinf_line = "" # 重置
+                              extinf_line = ""
                           else:
-                              # 如果EXTINF行不是目标，也重置
                               if not line.startswith("#EXTINF:"):
                                   extinf_line = ""
               except FileNotFoundError:
@@ -75,12 +77,12 @@ jobs:
 
           # --- 处理第一个源 ---
           print(f"--- Processing {source1_file} for group '{allowed_group1}' ---")
-          new_entries_source1 = parse_m3u(source1_file, allowed_group1)
+          new_entries_source1 = parse_m3u_robust(source1_file, allowed_group1)
           print(f"Found {len(new_entries_source1)} entries in '{allowed_group1}'.")
 
           # --- 处理第二个源 ---
           print(f"--- Processing {source2_file} for group '{allowed_group2}' ---")
-          new_entries_source2 = parse_m3u(source2_file, allowed_group2)
+          new_entries_source2 = parse_m3u_robust(source2_file, allowed_group2)
           print(f"Found {len(new_entries_source2)} entries in '{allowed_group2}'.")
 
           # 合并并去重
@@ -90,11 +92,25 @@ jobs:
               url = entry.split('\n')[-1]
               if url not in existing_urls:
                   entries_to_write.append(entry)
-                  existing_urls.add(url) # 防止本次运行中重复添加
+                  existing_urls.add(url)
 
           # --- 写入新内容 ---
           if entries_to_write:
               with open(output_file, "a", encoding="utf-8") as f_out:
                   for entry in entries_to_write:
                       f_out.write(entry + "\n")
-     
+              print(f"\nSUCCESS: Appended {len(entries_to_write)} new unique entries to '{output_file}'.")
+          else:
+              print("\nINFO: No new unique entries found to append.")
+PY
+      - name: Commit and push
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add 1.m3u
+          if ! git diff --staged --quiet; then
+            git commit -m "Auto update playlist (GPT-台湾 & 4Gtv)"
+            git push
+          else
+            echo "No changes to commit."
+          fi
