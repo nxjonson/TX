@@ -66,7 +66,7 @@ def parse_m3u_robust(file_path, allowed_group):
     return entries
 
 def parse_plain_text_urls(file_path, group_name):
-    """解析纯文本 URL 列表（每行一个 URL），手动添加 M3U 格式和分组"""
+    """解析纯文本 URL 列表（每行格式：频道名,URL），提取真实频道名"""
     entries = []
     try:
         encodings = ['utf-8', 'gbk', 'gb18030', 'latin-1']
@@ -84,13 +84,18 @@ def parse_plain_text_urls(file_path, group_name):
             return entries
 
         for line in content:
-            url = line.strip()
-            # 过滤空行和注释行（如果有的话）
-            if url and not url.startswith("#"):
-                # 手动构造 M3U 标准格式：#EXTINF:-1 group-title="分组名",频道名（用URL域名简化）
-                channel_name = url.split("//")[-1].split("/")[0]  # 提取域名作为频道名
-                extinf_line = f'#EXTINF:-1 group-title="{group_name}",{channel_name}\n'
-                entries.append(f"{extinf_line}{url}\n")
+            line = line.strip()
+            # 过滤无效行（分组分隔符、空行、注释行）
+            if not line or line.endswith(",#genre#") or line.startswith("#"):
+                continue
+            # 分割频道名和URL（格式：频道名,http://xxx）
+            if "," in line:
+                channel_name, url = line.split(",", 1)  # 只分割一次，避免URL含逗号
+                url = url.strip()
+                if url.startswith("http"):  # 确保是有效URL
+                    # 构造标准 M3U 格式，使用真实频道名
+                    extinf_line = f'#EXTINF:-1 group-title="{group_name}",{channel_name}\n'
+                    entries.append(f"{extinf_line}{url}\n")
     except FileNotFoundError:
         print(f"Warning: Source file not found at {file_path}")
     except Exception as e:
@@ -111,12 +116,14 @@ if not download_success:
 # 读取旧文件URL去重
 existing_urls = set()
 output_path = Path(output_file)
-file_header = "#EXTM3U\n"
+file_header = "#EXTM3U x-tvg-url=\"https://epg.tv.darwinchow.com/epg.xml\"\n"  # 保留原文件的EPG配置
 
 if output_path.exists():
     try:
         with open(output_file, "r", encoding="utf-8") as f:
-            for line in f:
+            lines = f.readlines()
+            # 保留原文件头部（如果存在）
+            for line in lines:
                 stripped_line = line.strip()
                 if stripped_line and not stripped_line.startswith("#"):
                     existing_urls.add(stripped_line)
@@ -132,7 +139,7 @@ print(f"Found {len(new_entries_source1)} entries in '{allowed_group1}'.")
 
 # --- 处理第二个源（纯文本 URL 列表）---
 print(f"--- Processing {source2_file} as plain text URLs (group: '{source2_group}') ---")
-new_entries_source2 = parse_plain_text_urls(source2_file, source2_group)  # 已修正为 source2_file
+new_entries_source2 = parse_plain_text_urls(source2_file, source2_group)
 print(f"Found {len(new_entries_source2)} entries in '{source2_group}'.")
 
 # 合并去重
@@ -144,15 +151,16 @@ for entry in all_new_entries:
         entries_to_write.append(entry)
         existing_urls.add(url)
 
-# 写入文件
+# 写入文件（确保头部唯一）
 if entries_to_write:
     with open(output_file, "a+", encoding="utf-8") as f_out:
         f_out.seek(0)
         first_line = f_out.readline()
-        if not first_line.startswith(file_header.strip()):
+        # 如果文件为空或无头部，添加标准头部
+        if not first_line.startswith("#EXTM3U"):
             f_out.write(file_header)
         
-        f_out.seek(0, 2)
+        f_out.seek(0, 2)  # 移动到文件末尾
         for entry in entries_to_write:
             f_out.write(entry)
     print(f"\nSUCCESS: Appended {len(entries_to_write)} new entries to '{output_file}'.")
