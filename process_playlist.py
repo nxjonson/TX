@@ -85,17 +85,25 @@ def parse_plain_text_urls(file_path, group_name):
 
         for line in content:
             line = line.strip()
-            # 过滤无效行（分组分隔符、空行、注释行）
-            if not line or line.endswith(",#genre#") or line.startswith("#"):
+            # 1. 过滤无效行：空行、注释行、分组标题行（含,#genre#）
+            if not line or line.startswith("#") or ",#genre#" in line:
                 continue
-            # 分割频道名和URL（格式：频道名,http://xxx）
-            if "," in line:
-                channel_name, url = line.split(",", 1)  # 只分割一次，避免URL含逗号
-                url = url.strip()
-                if url.startswith("http"):  # 确保是有效URL
-                    # 构造标准 M3U 格式，使用真实频道名
-                    extinf_line = f'#EXTINF:-1 group-title="{group_name}",{channel_name}\n'
-                    entries.append(f"{extinf_line}{url}\n")
+            # 2. 必须包含逗号（频道名,URL 格式）
+            if "," not in line:
+                continue
+            # 3. 分割频道名和URL（只分割一次）
+            channel_name, url = line.split(",", 1)
+            channel_name = channel_name.strip()
+            url = url.strip()
+            # 4. 校验URL有效性（必须以http开头，长度合理）
+            if not (url.startswith(("http://", "https://")) and len(url) > 10):
+                continue
+            # 5. 过滤无意义的频道名（如分组名、太短的名称）
+            if channel_name in ["4Gtv", "港台", "内地", "国外"] or len(channel_name) < 2:
+                continue
+            # 构造标准 M3U 格式
+            extinf_line = f'#EXTINF:-1 group-title="{group_name}",{channel_name}\n'
+            entries.append(f"{extinf_line}{url}\n")
     except FileNotFoundError:
         print(f"Warning: Source file not found at {file_path}")
     except Exception as e:
@@ -142,10 +150,19 @@ print(f"--- Processing {source2_file} as plain text URLs (group: '{source2_group
 new_entries_source2 = parse_plain_text_urls(source2_file, source2_group)
 print(f"Found {len(new_entries_source2)} entries in '{source2_group}'.")
 
-# 合并去重
-all_new_entries = new_entries_source1 + new_entries_source2
+# 合并去重（在两个分组之间添加两个空行）
+all_new_entries = new_entries_source1
+if new_entries_source1 and new_entries_source2:
+    all_new_entries.append("\n\n")  # 分组间添加两个空行
+all_new_entries += new_entries_source2
+
 entries_to_write = []
 for entry in all_new_entries:
+    # 空行无需去重，直接添加
+    if entry.strip() == "":
+        entries_to_write.append(entry)
+        continue
+    # URL去重
     url = entry.splitlines()[-1].strip()
     if url not in existing_urls:
         entries_to_write.append(entry)
