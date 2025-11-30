@@ -9,7 +9,7 @@ allowed_group1 = "GPT-台湾"
 
 source2_url = "http://2099.tv12.xyz/list.txt"
 source2_file = "/tmp/4gtv_list.txt"
-allowed_group2 = "4Gtv"
+source2_group = "4Gtv"  # 纯文本URL列表的默认分组
 
 output_file = "1.m3u"
 # --- 配置结束 ---
@@ -28,6 +28,7 @@ def download_file(url, save_path):
         return False
 
 def parse_m3u_robust(file_path, allowed_group):
+    """解析标准 M3U 文件（带 #EXTINF 标签）"""
     entries = []
     group_title_regex = re.compile(r'group-title\s*=\s*["\']([^"\']+)["\']')
     
@@ -64,6 +65,38 @@ def parse_m3u_robust(file_path, allowed_group):
         print(f"Error parsing {file_path}: {e}")
     return entries
 
+def parse_plain_text_urls(file_path, group_name):
+    """解析纯文本 URL 列表（每行一个 URL），手动添加 M3U 格式和分组"""
+    entries = []
+    try:
+        encodings = ['utf-8', 'gbk', 'gb18030', 'latin-1']
+        content = None
+        for encoding in encodings:
+            try:
+                with open(file_path, "r", encoding=encoding) as f:
+                    content = f.readlines()
+                break
+            except UnicodeDecodeError:
+                continue
+        
+        if content is None:
+            print(f"Error: Could not decode {file_path}")
+            return entries
+
+        for line in content:
+            url = line.strip()
+            # 过滤空行和注释行（如果有的话）
+            if url and not url.startswith("#"):
+                # 手动构造 M3U 标准格式：#EXTINF:-1 group-title="分组名",频道名（用URL域名简化）
+                channel_name = url.split("//")[-1].split("/")[0]  # 提取域名作为频道名
+                extinf_line = f'#EXTINF:-1 group-title="{group_name}",{channel_name}\n'
+                entries.append(f"{extinf_line}{url}\n")
+    except FileNotFoundError:
+        print(f"Warning: Source file not found at {file_path}")
+    except Exception as e:
+        print(f"Error parsing {file_path}: {e}")
+    return entries
+
 # 下载文件
 download_success = True
 if not download_file(source1_url, source1_file):
@@ -92,14 +125,15 @@ if output_path.exists():
 else:
     print(f"'{output_file}' not found, creating new.")
 
-# 处理源文件
+# --- 处理第一个源（标准 M3U）---
 print(f"--- Processing {source1_file} for group '{allowed_group1}' ---")
 new_entries_source1 = parse_m3u_robust(source1_file, allowed_group1)
 print(f"Found {len(new_entries_source1)} entries in '{allowed_group1}'.")
 
-print(f"--- Processing {source2_file} for group '{allowed_group2}' ---")
-new_entries_source2 = parse_m3u_robust(source2_file, allowed_group2)
-print(f"Found {len(new_entries_source2)} entries in '{allowed_group2}'.")
+# --- 处理第二个源（纯文本 URL 列表）---
+print(f"--- Processing {source2_file} as plain text URLs (group: '{source2_group}') ---")
+new_entries_source2 = parse_plain_text_urls(source2_file, source2_group)  # 已修正为 source2_file
+print(f"Found {len(new_entries_source2)} entries in '{source2_group}'.")
 
 # 合并去重
 all_new_entries = new_entries_source1 + new_entries_source2
