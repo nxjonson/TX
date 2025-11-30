@@ -38,70 +38,63 @@ jobs:
           output_file = "1.m3u"
           # --- 配置结束 ---
 
-          # 读取旧文件，用于去重
-          existing_lines = set()
+          def parse_m3u(file_path, allowed_group):
+              """安全地解析 M3U 文件，返回指定分组的频道列表"""
+              entries = []
+              try:
+                  with open(file_path, "r", encoding="utf-8") as f:
+                      extinf_line = ""
+                      for line in f:
+                          line = line.strip()
+                          if line.startswith("#EXTINF:"):
+                              if f'group-title="{allowed_group}"' in line:
+                                  extinf_line = line
+                          elif extinf_line and line and not line.startswith("#"):
+                              # 如果上一行是目标EXTINF，且当前行是URL，则保存
+                              entries.append(f"{extinf_line}\n{line}")
+                              extinf_line = "" # 重置
+                          else:
+                              # 如果EXTINF行不是目标，也重置
+                              if not line.startswith("#EXTINF:"):
+                                  extinf_line = ""
+              except FileNotFoundError:
+                  print(f"Warning: Source file not found at {file_path}")
+              except Exception as e:
+                  print(f"Error parsing {file_path}: {e}")
+              return entries
+
+          # 读取旧文件中已存在的URL，用于去重
+          existing_urls = set()
           try:
               with open(output_file, "r", encoding="utf-8") as f:
-                  existing_lines = set(line.strip() for line in f if line.strip())
+                  for line in f:
+                      if line.strip() and not line.startswith("#"):
+                          existing_urls.add(line.strip())
           except FileNotFoundError:
-              print(f"{output_file} not found, will create a new one.")
-
-          # 存放所有新频道的集合（自动去重）
-          all_new_entries = set()
+              print(f"'{output_file}' not found, a new one will be created.")
 
           # --- 处理第一个源 ---
-          print(f"Processing {source1_file} for group '{allowed_group1}'...")
-          try:
-              with open(source1_file, "r", encoding="utf-8") as f_in:
-                  content = f_in.read()
-                  # 使用正则表达式匹配 EXTINF 行和其后的 URL 行
-                  matches = re.findall(r"(#EXTINF:-1.*?group-title=\"([^\"]*?)\".*?\n)([^\n]+)", content)
-                  for extinf_line, group_title, url_line in matches:
-                      if group_title == allowed_group1:
-                          # 将 EXTINF 行和 URL 行合并为一个条目
-                          all_new_entries.add(f"{extinf_line.strip()}\n{url_line.strip()}")
-          except FileNotFoundError:
-              print(f"Warning: {source1_file} not found.")
-          
-          print(f"Found {len(all_new_entries)} new entries from source 1.")
+          print(f"--- Processing {source1_file} for group '{allowed_group1}' ---")
+          new_entries_source1 = parse_m3u(source1_file, allowed_group1)
+          print(f"Found {len(new_entries_source1)} entries in '{allowed_group1}'.")
 
           # --- 处理第二个源 ---
-          print(f"Processing {source2_file} for group '{allowed_group2}'...")
-          try:
-              with open(source2_file, "r", encoding="utf-8") as f_in:
-                  content = f_in.read()
-                  # 使用相同的正则表达式匹配
-                  matches = re.findall(r"(#EXTINF:-1.*?group-title=\"([^\"]*?)\".*?\n)([^\n]+)", content)
-                  for extinf_line, group_title, url_line in matches:
-                      if group_title == allowed_group2:
-                          all_new_entries.add(f"{extinf_line.strip()}\n{url_line.strip()}")
-          except FileNotFoundError:
-              print(f"Warning: {source2_file} not found.")
+          print(f"--- Processing {source2_file} for group '{allowed_group2}' ---")
+          new_entries_source2 = parse_m3u(source2_file, allowed_group2)
+          print(f"Found {len(new_entries_source2)} entries in '{allowed_group2}'.")
 
-          print(f"Found a total of {len(all_new_entries)} unique new entries from both sources.")
+          # 合并并去重
+          all_new_entries = new_entries_source1 + new_entries_source2
+          entries_to_write = []
+          for entry in all_new_entries:
+              url = entry.split('\n')[-1]
+              if url not in existing_urls:
+                  entries_to_write.append(entry)
+                  existing_urls.add(url) # 防止本次运行中重复添加
 
           # --- 写入新内容 ---
-          entries_to_write_count = 0
-          with open(output_file, "a", encoding="utf-8") as f_out:
-              for entry in all_new_entries:
-                  # 检查条目的URL部分是否已存在，实现更健壮的去重
-                  entry_url = entry.split('\n')[-1]
-                  if entry_url not in {line.split('\n')[-1] for line in existing_lines}:
-                       f_out.write(entry + "\n")
-                       entries_to_write_count += 1
-                       existing_lines.add(entry) # 更新已存在集合，防止本次运行中重复写入
-
-          print(f"Successfully appended {entries_to_write_count} new entries to {output_file}.")
-          PY
-
-      - name: Commit and push
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add 1.m3u
-          if ! git diff --staged --quiet; then
-            git commit -m "Auto update playlist (GPT-台湾 & 4Gtv)"
-            git push
-          else
-            echo "No new entries to commit."
-          fi
+          if entries_to_write:
+              with open(output_file, "a", encoding="utf-8") as f_out:
+                  for entry in entries_to_write:
+                      f_out.write(entry + "\n")
+     
