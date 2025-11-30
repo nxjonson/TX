@@ -2,219 +2,119 @@ import re
 import requests
 from pathlib import Path
 
-# --- 配置 ---
+# --- 核心配置 ---
 source1_url = "https://raw.githubusercontent.com/judy-gotv/iptv/refs/heads/main/smart.m3u"
 source1_file = "/tmp/smart.m3u"
 allowed_group1 = "GPT-台湾"
 
 source2_url = "http://2099.tv12.xyz/list.txt"
 source2_file = "/tmp/4gtv_list.txt"
-source2_group = "4Gtv"  # 纯文本URL列表的默认分组
-
-output_file = "1.m3u"
-# 无效频道名列表（用于清理旧条目）
+source2_group = "4Gtv"
 INVALID_CHANNEL_NAMES = ["4Gtv", "港台", "内地", "国外"]
+KEYWORD = "新闻"  # 只保留含该关键词的频道
+output_file = "1.m3u"
+file_header = "#EXTM3U x-tvg-url=\"https://epg.tv.darwinchow.com/epg.xml\"\n"
 # --- 配置结束 ---
 
 def download_file(url, save_path):
     try:
-        print(f"Downloading {url}...")
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         with open(save_path, 'wb') as f:
             f.write(response.content)
-        print(f"Successfully downloaded to {save_path}")
         return True
-    except requests.exceptions.RequestException as e:
-        print(f"ERROR downloading {url}: {e}")
+    except requests.exceptions.RequestException:
         return False
 
-def parse_m3u_robust(file_path, allowed_group):
-    """解析标准 M3U 文件（带 #EXTINF 标签）"""
+def parse_m3u(file_path, allowed_group):
     entries = []
-    group_title_regex = re.compile(r'group-title\s*=\s*["\']([^"\']+)["\']')
-    
+    group_regex = re.compile(r'group-title\s*=\s*["\']([^"\']+)["\']')
     try:
-        encodings = ['utf-8', 'gbk', 'gb18030', 'latin-1']
-        content = None
-        for encoding in encodings:
-            try:
-                with open(file_path, "r", encoding=encoding) as f:
-                    content = f.readlines()
-                break
-            except UnicodeDecodeError:
-                continue
-        
-        if content is None:
-            print(f"Error: Could not decode {file_path}")
-            return entries
-
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
         extinf_line = ""
-        for line in content:
+        for line in lines:
             if line.startswith("#EXTINF:"):
-                match = group_title_regex.search(line)
+                match = group_regex.search(line)
                 if match and match.group(1) == allowed_group:
                     extinf_line = line
-            elif extinf_line and line.strip() and not line.strip().startswith("#"):
-                entries.append(f"{extinf_line}{line}")
+            elif extinf_line and line.strip() and not line.startswith("#"):
+                # 过滤 GPT-台湾 分组中含“新闻”的频道
+                if KEYWORD in extinf_line:
+                    entries.append(f"{extinf_line}{line}")
                 extinf_line = ""
-            else:
-                if not line.startswith("#EXTINF:"):
-                    extinf_line = ""
-    except FileNotFoundError:
-        print(f"Warning: Source file not found at {file_path}")
-    except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
+    except:
+        pass
     return entries
 
-def parse_plain_text_urls(file_path, group_name):
-    """解析纯文本 URL 列表（每行格式：频道名,URL），提取真实频道名"""
+def parse_plain_text(file_path, group_name):
     entries = []
     try:
-        encodings = ['utf-8', 'gbk', 'gb18030', 'latin-1']
-        content = None
-        for encoding in encodings:
-            try:
-                with open(file_path, "r", encoding=encoding) as f:
-                    content = f.readlines()
-                break
-            except UnicodeDecodeError:
-                continue
-        
-        if content is None:
-            print(f"Error: Could not decode {file_path}")
-            return entries
-
-        for line in content:
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        # 只处理 4Gtv,#genre# 分组下的内容
+        in_4gtv_group = False
+        for line in lines:
             line = line.strip()
-            # 1. 过滤无效行：空行、注释行、分组标题行（含,#genre#）
-            if not line or line.startswith("#") or ",#genre#" in line:
+            # 标记分组开始/结束
+            if line == "4Gtv,#genre#":
+                in_4gtv_group = True
                 continue
-            # 2. 必须包含逗号（频道名,URL 格式）
-            if "," not in line:
-                continue
-            # 3. 分割频道名和URL（只分割一次）
-            channel_name, url = line.split(",", 1)
-            channel_name = channel_name.strip()
-            url = url.strip()
-            # 4. 校验URL有效性（必须以http开头，长度合理）
-            if not (url.startswith(("http://", "https://")) and len(url) > 10):
-                continue
-            # 5. 过滤无意义的频道名（如分组名、太短的名称）
-            if channel_name in INVALID_CHANNEL_NAMES or len(channel_name) < 2:
-                continue
-            # 构造标准 M3U 格式
-            extinf_line = f'#EXTINF:-1 group-title="{group_name}",{channel_name}\n'
-            entries.append(f"{extinf_line}{url}\n")
-    except FileNotFoundError:
-        print(f"Warning: Source file not found at {file_path}")
-    except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
+            if in_4gtv_group and (line.endswith(",#genre#") or not line):
+                break  # 遇到下一个分组或空行，停止处理
+            
+            if in_4gtv_group and line:
+                if not line.startswith("#") and "," in line:
+                    channel_name, url = line.split(",", 1)
+                    channel_name = channel_name.strip()
+                    url = url.strip()
+                    # 过滤条件：含新闻关键词 + 有效URL + 无意义频道名
+                    if (KEYWORD in channel_name 
+                        and url.startswith(("http://", "https://")) 
+                        and channel_name not in INVALID_CHANNEL_NAMES 
+                        and len(channel_name) >= 2):
+                        entries.append(f'#EXTINF:-1 group-title="{group_name}",{channel_name}\n{url}\n')
+    except:
+        pass
     return entries
 
-def clean_old_invalid_entries(output_file):
-    """清理旧文件中的无效条目（4Gtv、港台等）"""
-    if not Path(output_file).exists():
-        return set()  # 文件不存在，返回空集合
-    
-    valid_entries = []
-    valid_urls = set()
-    current_extinf = ""
-    
-    try:
-        with open(output_file, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-            for line in lines:
-                line_stripped = line.strip()
-                if line.startswith("#EXTINF:"):
-                    # 检查是否为无效频道名
-                    channel_match = re.search(r',([^,]+)$', line)
-                    if channel_match and channel_match.group(1) in INVALID_CHANNEL_NAMES:
-                        current_extinf = ""  # 标记为无效，后续URL不保留
-                    else:
-                        current_extinf = line
-                elif line_stripped and not line_stripped.startswith("#") and current_extinf:
-                    # 有效URL，添加到列表和去重集合
-                    valid_entries.append(f"{current_extinf}{line}")
-                    valid_urls.add(line_stripped)
-                elif line.startswith("#EXTM3U"):
-                    # 保留文件头部
-                    valid_entries.append(line)
-    except Exception as e:
-        print(f"Error cleaning old entries: {e}")
-        return set()
-    
-    # 重写清理后的文件
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.writelines(valid_entries)
-    
-    print(f"Cleaned old invalid entries. Kept {len(valid_entries)} valid lines.")
-    return valid_urls
-
-# 下载文件
-download_success = True
-if not download_file(source1_url, source1_file):
-    download_success = False
-if not download_file(source2_url, source2_file):
-    download_success = False
-
-if not download_success:
-    print("Some files failed to download. Exiting.")
+# 下载两个源文件
+if not (download_file(source1_url, source1_file) and download_file(source2_url, source2_file)):
     exit(1)
 
-# 清理旧文件中的无效条目，并获取有效URL（用于去重）
-existing_urls = clean_old_invalid_entries(output_file)
-output_path = Path(output_file)
-file_header = "#EXTM3U x-tvg-url=\"https://epg.tv.darwinchow.com/epg.xml\"\n"
+# 解析两个源的有效条目（仅含新闻频道）
+entries1 = parse_m3u(source1_file, allowed_group1)  # GPT-台湾 新闻频道
+entries2 = parse_plain_text(source2_file, source2_group)  # 4Gtv 新闻频道
 
-# 确保文件头部存在
-if output_path.exists():
+# 读取现有URL去重
+existing_urls = set()
+if Path(output_file).exists():
     with open(output_file, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-        if not lines or not lines[0].startswith("#EXTM3U"):
-            lines.insert(0, file_header)
-            with open(output_file, "w", encoding="utf-8") as f_out:
-                f_out.writelines(lines)
-else:
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write(file_header)
-    print(f"'{output_file}' not found, created new file with header.")
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                existing_urls.add(line)
 
-# --- 处理第一个源（标准 M3U）---
-print(f"--- Processing {source1_file} for group '{allowed_group1}' ---")
-new_entries_source1 = parse_m3u_robust(source1_file, allowed_group1)
-print(f"Found {len(new_entries_source1)} entries in '{allowed_group1}'.")
-
-# --- 处理第二个源（纯文本 URL 列表）---
-print(f"--- Processing {source2_file} as plain text URLs (group: '{source2_group}') ---")
-new_entries_source2 = parse_plain_text_urls(source2_file, source2_group)
-print(f"Found {len(new_entries_source2)} entries in '{source2_group}'.")
-
-# 合并条目（确保分组间空两行）
+# 合并条目（分组间空两行）
 final_entries = []
-# 添加第一个分组有效条目
-final_entries.extend(new_entries_source1)
-# 两个分组都有内容时，插入两个空行
-if new_entries_source1 and new_entries_source2:
-    final_entries.append("\n\n")
-# 添加第二个分组有效条目
-final_entries.extend(new_entries_source2)
-
-# 去重并收集新条目
-entries_to_write = []
-for entry in final_entries:
-    if entry.strip() == "":
-        entries_to_write.append(entry)
-        continue
+for entry in entries1:
     url = entry.splitlines()[-1].strip()
     if url not in existing_urls:
-        entries_to_write.append(entry)
+        final_entries.append(entry)
         existing_urls.add(url)
 
-# 追加新条目到文件
-if entries_to_write:
-    with open(output_file, "a", encoding="utf-8") as f_out:
-        f_out.writelines(entries_to_write)
-    print(f"\nSUCCESS: Appended {len(entries_to_write)} new entries to '{output_file}'.")
-else:
-    print("\nINFO: No new unique entries found.")
+if entries1 and entries2:
+    final_entries.append("\n\n")  # 分组间空两行
+
+for entry in entries2:
+    url = entry.splitlines()[-1].strip()
+    if url not in existing_urls:
+        final_entries.append(entry)
+        existing_urls.add(url)
+
+# 写入文件（确保头部正确）
+with open(output_file, "w", encoding="utf-8") as f:
+    f.write(file_header)
+    f.writelines(final_entries)
+
+print(f"生成完成：{len(entries1)} 个 GPT-台湾 新闻频道，{len(entries2)} 个 4Gtv 新闻频道")
