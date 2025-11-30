@@ -36,7 +36,8 @@ jobs:
           pip install requests
 
       - name: Download and process playlists
-        run: python3 << 'PY'
+        run: |
+          python3 << 'PY'
 import re
 import requests
 from pathlib import Path
@@ -112,6 +113,7 @@ if not download_file(source2_url, source2_file):
 
 if not download_success:
     print("Some files failed to download. Exiting.")
+    exit(1)
 
 # 读取旧文件URL去重
 existing_urls = set()
