@@ -3,7 +3,7 @@ name: smart
 on:
   schedule:
     - cron: '45 21 */2 * *'
-  workflow_dispatch: true
+  workflow_dispatch:  # 就是这样，不带 true
 
 jobs:
   filter:
