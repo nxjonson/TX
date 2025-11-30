@@ -3,17 +3,7 @@ name: smart
 on:
   schedule:
     - cron: '45 21 */2 * *'
-  workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'Log level'
-        required: true
-        default: 'warning'
-        type: choice
-        options:
-          - info
-          - warning
-          - debug
+  workflow_dispatch:  # 就是这样，不带 true
 
 jobs:
   filter:
@@ -25,18 +15,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
+      - name: Download and process playlist
         run: |
-          python -m pip install --upgrade pip
-          pip install requests
-
-      - name: Run playlist process script
-        run: python3 process_playlist.py
+          curl -s -o /tmp/smart.m3u "https://raw.githubusercontent.com/judy-gotv/iptv/refs/heads/main/smart.m3u"
+          python3 <<'PY'
+          import re
+          input_file = "/tmp/smart.m3u"
+          output_file = "1.m3u"
+          allowed_groups = {"GPT-台湾"}
+          try:
+              with open(output_file, "r", encoding="utf-8") as f_existing:
+                  existing_lines = set(f_existing.read().splitlines())
+          except FileNotFoundError:
+              existing_lines = set()
+          new_entries = []
+          with open(input_file, "r", encoding="utf-8") as f_in:
+              write_next = False
+              for line in f_in:
+                  line = line.strip()
+                  if line.startswith("#EXTINF"):
+                      match = re.search(r'group-title="([^"]+)"', line)
+                      if match and match.group(1) in allowed_groups:
+                          new_entries.append(line)
+                          write_next = True
+                      else:
+                          write_next = False
+                  elif write_next and not line.startswith("#"):
+                      new_entries.append(line)
+                      write_next = False
+          with open(output_file, "a", encoding="utf-8") as f_out:
+              for entry in new_entries:
+                  if entry not in existing_lines:
+                      f_out.write(entry + "\n")
+          PY
 
       - name: Commit and push
         run: |
@@ -44,8 +55,6 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add 1.m3u
           if ! git diff --staged --quiet; then
-            git commit -m "Auto update playlist (GPT-台湾 & 4Gtv) at $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+            git commit -m "Auto update smart playlist"
             git push
-          else
-            echo "No changes to commit."
           fi
