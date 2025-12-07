@@ -23,38 +23,76 @@ jobs:
 
           input_file = "/tmp/smart.m3u"
           output_file = "1.m3u"
-          allowed_groups = {"GPT-台湾"}
-          user_agent_line = '#EXTVLCOPT:http-user-agent=Goiptv/8.8.8'
+          target_group = "GPT-台湾"
+          ua_attr = 'http-user-agent="Goiptv/8.8.8"'
 
-          # 读取已有内容避免重复
+          # Step 1: 提取 1.m3u 中所有非 GPT-台湾 的行
+          non_taiwan_lines = []
           try:
-              with open(output_file, "r", encoding="utf-8") as f_existing:
-                  existing_lines = set(f_existing.read().splitlines())
+              with open(output_file, "r", encoding="utf-8") as f:
+                  lines = [line.rstrip('\n') for line in f.readlines()]
+              i = 0
+              while i < len(lines):
+                  if lines[i].startswith("#EXTINF"):
+                      match = re.search(r'group-title="([^"]+)"', lines[i])
+                      if match and match.group(1) == target_group:
+                          j = i + 1
+                          while j < len(lines) and lines[j].startswith("#"):
+                              j += 1
+                          if j < len(lines) and not lines[j].startswith("#"):
+                              j += 1
+                          i = j
+                          continue
+                  non_taiwan_lines.append(lines[i])
+                  i += 1
           except FileNotFoundError:
-              existing_lines = set()
+              pass
 
-          new_entries = []
+          # Step 2: 从源文件提取最新 GPT-台湾 频道，并注入 User-Agent
+          new_taiwan_entries = []
           with open(input_file, "r", encoding="utf-8") as f_in:
-              write_next = False
-              for line in f_in:
-                  line = line.strip()
-                  if line.startswith("#EXTINF"):
-                      match = re.search(r'group-title="([^"]+)"', line)
-                      if match and match.group(1) in allowed_groups:
-                          new_entries.append(line)
-                          new_entries.append(user_agent_line)  # 插入 User-Agent 行
-                          write_next = True
-                      else:
-                          write_next = False
-                  elif write_next and not line.startswith("#"):
-                      new_entries.append(line)
-                      write_next = False
+              src_lines = f_in.readlines()
 
-          # 写入不重复的新条目
-          with open(output_file, "a", encoding="utf-8") as f_out:
-              for entry in new_entries:
-                  if entry not in existing_lines:
-                      f_out.write(entry + "\n")
+          i = 0
+          while i < len(src_lines):
+              line = src_lines[i].rstrip('\n')
+              if line.startswith("#EXTINF"):
+                  match = re.search(r'group-title="([^"]+)"', line)
+                  if match and match.group(1) == target_group:
+                      j = i + 1
+                      url = None
+                      while j < len(src_lines):
+                          next_line = src_lines[j].rstrip('\n')
+                          if next_line and not next_line.startswith("#"):
+                              url = next_line
+                              break
+                          j += 1
+                      if url is not None:
+                          extinf_clean = re.sub(r'\s*http-user-agent="[^"]*"', '', line)
+                          if ',' in extinf_clean:
+                              pos = extinf_clean.rfind(',')
+                              new_extinf = extinf_clean[:pos] + ' ' + ua_attr + extinf_clean[pos:]
+                          else:
+                              new_extinf = extinf_clean + ' ' + ua_attr
+                          new_taiwan_entries.append(new_extinf)
+                          new_taiwan_entries.append(url)
+                      i = j + 1 if url else i + 1
+                  else:
+                      i += 1
+              else:
+                  i += 1
+
+          # Step 3: 重写 1.m3u = 非台湾内容 + 两空行 + 新台湾频道
+          with open(output_file, "w", encoding="utf-8") as f_out:
+              # 写入非台湾内容
+              for line in non_taiwan_lines:
+                  f_out.write(line + "\n")
+              # 如果有新台湾频道，加两个空行（视觉分隔）
+              if new_taiwan_entries:
+                  f_out.write("\n\n")
+              # 写入新台湾频道
+              for entry in new_taiwan_entries:
+                  f_out.write(entry + "\n")
           PY
 
       - name: Commit and push
