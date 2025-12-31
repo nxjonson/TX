@@ -51,7 +51,7 @@ jobs:
         run: |
           python3 <<'EOF'
           import re, sys
-          UA_HINT = "##UA-Hint: 请将 User-Agent 设置为 okHttp/Mod-1.4.0.0 ，否则无法观看"
+          UA_HINT = "##UA-Hint: 请将 User-Agent 设置为 okHttp/Mod-1.5.0.0 ，否则无法观看"
           try:
               with open("iptv.m3u", "r", encoding="utf-8", errors="ignore") as f:
                   lines = f.read().splitlines()
