@@ -2,7 +2,7 @@ name: smart
 
 on:
   schedule:
-    - cron: '45 21 */2 * *'
+    - cron: '45 21 * * *'
   workflow_dispatch:
 
 jobs:
