@@ -1,93 +1,93 @@
 #EXTM3U x-tvg-url="https://11.112114.xyz/pp.xml"
 ##UA-Hint: 请将 User-Agent 设置为 okHttp/Mod-1.5.0.0 ，否则无法观看
 #EXTINF:-1 tvg-name="cctv1" tvg-logo="https://11.112114.xyz/logo/cctv1.png" group-title="央视",cctv1-MCP
-https://live.ottiptv.cc/mcp/cctv1.m3u8?userid=5554959808&sign=623ca7f1aaae12b91ec0472c06c9306a9b79694422ffdaab79b5014456eb8b7a15d22376438473a698be994bb5901a4f4962355da33e6a601d1f56fb99be7729944ddc54e6226513c37567eb1f&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv1.m3u8?userid=5554959808&sign=08c6cb70abfd3cad7f37c3df686602d18c124aac35eb370c897a0f9f59f674f20a3e3ba236fbda96a34190a1d84f14b4c0d582f7ad51e462d1877b864c9887217fc9ed262a35d0ae7b4a95973a&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv2" tvg-logo="https://11.112114.xyz/logo/cctv2.png" group-title="央视",cctv2-MCP
-https://live.ottiptv.cc/mcp/cctv2.m3u8?userid=5554959808&sign=33acebb184a11013b2f119df9374922abb2a9134f62905e1d6543e49b94b97fc00b7d69fcd3daa9e56f04087feaaff07e443f4cff7bc863b65ecab17383cac68bf54cdebac95ebab269c25d332&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv2.m3u8?userid=5554959808&sign=34bc0f14d696a903c107ae4e9a29fc220b08afc128d2476fbd1aa66b709ea346a7640a570fe028e7e6fc9f9bc624b1b43fedaa2f984509175094859971071ca6669b76e26260d1521b2839d567&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv3" tvg-logo="https://11.112114.xyz/logo/cctv3.png" group-title="央视",cctv3-MCP
-https://live.ottiptv.cc/mcp/cctv3.m3u8?userid=5554959808&sign=5c834385d93c5f69f17a2d450a4f6fabc6bbb59acf396d0220b0ffa55d69ecfaeb7b2e1219887cae28a63a473009fc3bbe6b76eed2bb6111e338596694c4e3815e0fab3decc388ea9acab1e18a&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv3.m3u8?userid=5554959808&sign=ee9a2e0d0acb3b575b286172c7bcb33c425b5fcd7011d3f25803f099afe5555eb083c647898d87efa976f82f1a9e57ceafcb9db1e6da1598ea8d9c1302664a76264fe891f5cc7fbbd74c6d6d95&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv4" tvg-logo="https://11.112114.xyz/logo/cctv4.png" group-title="央视",cctv4-MCP
-https://live.ottiptv.cc/mcp/cctv4.m3u8?userid=5554959808&sign=13a445f3c10097c79c536ec0391eac8f218dc797705906ed4feb0ae7a00dd8e85e523bbcbcf295b2f6bec5afd1ecaebe0af2db22a08c2cefe7c6a2c624115aa73ff700657d4596b676aba81097&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv4.m3u8?userid=5554959808&sign=8e91307d93de7b6fa3a97cbfe558ea15e8ff08dafb2e4cc7652385228563418c6c5590b22e45afea7efd30a09f621a67bc4063d5b4b032425f4d1f1d44ac7d86e05eaa87d1e698d115abfff2de&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv5" tvg-logo="https://11.112114.xyz/logo/cctv5.png" group-title="央视",cctv5-MCP
-https://live.ottiptv.cc/mcp/cctv5.m3u8?userid=5554959808&sign=31e6262a47c40061722e42195679a8a38cc74eb774217a87373495b3ecfc8c38cc1cd57397cfc4e83bd45170c49b8e27c9b521f487882d4dba7e0366fb256ca38af7ce4d1cfa17408d5ead0856&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv5.m3u8?userid=5554959808&sign=798c3e7bf255130cc5d34369ef602f56788cb31419a210bebb646248bdfad6accc711bd329f118592aafc6c66dfd6868031457e61c7d16d892a2c5836f220fb79487d5a2c9ed7350e921dc836b&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv5p" tvg-logo="https://11.112114.xyz/logo/cctv5p.png" group-title="央视",cctv5p-MCP
-https://live.ottiptv.cc/mcp/cctv5p.m3u8?userid=5554959808&sign=6b1ae8ae8caca46968afae595217a8653db42d0920f9534a8f8f855c51e0d7f0f549e61c5ec9f08974194a89749dcdf18073436af4830113040fca35bdc87372e2d6e5f19e122c19512b771fd6e2&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv5p.m3u8?userid=5554959808&sign=9d84194eec6136eb3711c4ea6e53cf0120811510279a61f873305a9e7e2288ff68bcbbebc12e549d3fc0b767bfe688b9c3eaea940d6438d8f6afebd335bddd835b79790fa9cfb35923b05cc51d88&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv6" tvg-logo="https://11.112114.xyz/logo/cctv6.png" group-title="央视",cctv6-MCP
-https://live.ottiptv.cc/mcp/cctv6.m3u8?userid=5554959808&sign=ee15602c15a236bb22f25750ccfcbe14cdf69ae287bbc8cab6f311089a5790636752dc127b658c9f09252257fc4703c49b9f564980956ab5581a75bd0b797fbb8c5a63472f76a60405f95afc91&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv6.m3u8?userid=5554959808&sign=e20ab51c865f7812dce4abc41a160e5151b36efe2946c552f284b0bc6abfb288b98172455e144b8b3682c8ab82d9fc49c70bf12c1cba1fa70612751c56e2951f82f78837bcad65a505090f583e&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv7" tvg-logo="https://11.112114.xyz/logo/cctv7.png" group-title="央视",cctv7-MCP
-https://live.ottiptv.cc/mcp/cctv7.m3u8?userid=5554959808&sign=991432e2e2fdaa5db16c99c3f58669365eeb655640ffcfb2098df1fcbb3b58312e61a0524e7900d7daa1cc180ba3c59ce727148b12f13340cb441f299c9564d1205c46a036d0292ef46496716b&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv7.m3u8?userid=5554959808&sign=148922427fb3da5be2cda97598fb57ed5cfe1c4b1004fda4ac7f468b7daa0a0b5559ae511c6d7e9265290fb06ebcb590f1b25d6efb83c0e8d2e27503f3291671b886d6315f8b8c7b41f73beadf&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv8" tvg-logo="https://11.112114.xyz/logo/cctv8.png" group-title="央视",cctv8-MCP
-https://live.ottiptv.cc/mcp/cctv8.m3u8?userid=5554959808&sign=8706819cb3c829ebcb1b4f9f39ba6e8f08a056579e5bf60a8fec6fb97cd1abd47577cc60668b8f90a3d50cfbae07dad4fb9cc4269f14192a55fea64f42e0dc0efd9d2b168ede5ed8bd7a2df9d3&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv8.m3u8?userid=5554959808&sign=97f754bcf0d7db605300fae121be13b1c9481f8a9176d4b727149e06b7df1a7b98816d059abb1bfa197813f3e79e4cdff8c3529f0b478e4927b834d17926a7b3a6547f88bc93935e3407f17f20&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv9" tvg-logo="https://11.112114.xyz/logo/cctv9.png" group-title="央视",cctv9-MCP
-https://live.ottiptv.cc/mcp/cctv9.m3u8?userid=5554959808&sign=4d3c823d408a76bce57537362aa96d8664c841d0662328d41733b3bf032f13b18bdbe62d64f74593fdde864f4c7ce3c198c3806ffe2ca7604faeb93a10e359e80dc4982746f236a206d55ce47b&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv9.m3u8?userid=5554959808&sign=f571f3971224cf4cf34b44b862b13976cc4393e7d017cd9412dbdb62cc41abb0df8c32f53f792f352d80aa2ca29e8c7a3dd3af9fd8cf01cff9eee0a7cb31b830879415005df65ca12bdf6026df&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv10" tvg-logo="https://11.112114.xyz/logo/cctv10.png" group-title="央视",cctv10-MCP
-https://live.ottiptv.cc/mcp/cctv10.m3u8?userid=5554959808&sign=1479e71394357a25baa3d04ceae5808f61f038773bbc05d6ad0b19c848fd62cba78d4f15e90b661f6310fb1c8cf08b975db516eaff62447a2f9d71ebb3ad5f1c363985a2672672c0b5ef10cac7f1&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv10.m3u8?userid=5554959808&sign=a0f0bc995e1958ee00ac078a610b4632628773c65f2016e3ac84f53a392614519e26a6a9c9816d9c05036ceb6662de49275b441de8b012e3a51b7a55a0568c2120c715e5eaf1058d33d715050c60&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv11" tvg-logo="https://11.112114.xyz/logo/cctv11.png" group-title="央视",cctv11-MCP
-https://live.ottiptv.cc/mcp/cctv11.m3u8?userid=5554959808&sign=1c27221112cd60a1834cb05265b1671f435700b3bac3740f164eaf7a0ab18a491c7e6d50e5a1a5a92989f55f3e561b0b01c5aef56f49c7279c967385a13fa956a5f278791deb1443b6ea8e3ead4e&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv11.m3u8?userid=5554959808&sign=485c113e67360614915d95779101e3764a49602eebbcbdbf909fb2e57d6e65ab01edb16d0b38cd708964d1e038ea11ddfbbc39d62f4398d5539eb74424f9ad66cf72bdbe37733b20421724fac833&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv12" tvg-logo="https://11.112114.xyz/logo/cctv12.png" group-title="央视",cctv12-MCP
-https://live.ottiptv.cc/mcp/cctv12.m3u8?userid=5554959808&sign=b6c099fd4bb48be292bfd1bc1826b2a0c6cfc3fd83dbb39e0a7dd0c961a53a33aa154d414a626c80ad15aa06ad6b383aa35a5d619bc4b6640071f3bbf2728c59d36825dbc815eece77716cab1a27&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv12.m3u8?userid=5554959808&sign=2910753d3d7fa2d7d7441b77c7e8a710df830ae0b4d3379ffe51c54c7ae756fcf0795801939be2fbc48eea39ad8d0f810d3eda56de2e7834b0b70519c79956ab394e43a4fde86550ce896937f718&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv13" tvg-logo="https://11.112114.xyz/logo/cctv13.png" group-title="央视",cctv13-MCP
-https://live.ottiptv.cc/mcp/cctv13.m3u8?userid=5554959808&sign=c0e51817ac73512cc0b516a21336a08832b8618598c599842bb814a4ff965d09329af9f481d058b6d8d1eca8037e3ef07f5e2bfb538e3df970bc1096bc1bcc0f479aa5021bbabbae725bd7d51563&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv13.m3u8?userid=5554959808&sign=1f02259e499317e86b1b59e92f709e46ec89568792ca10f3795571c3aa3ace1ada1bb8e0529a1780afc05dff80f0b46ca29e5c4b66760fac449f3f3621760c3b419614d58cc14e40ac31341b943a&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv14" tvg-logo="https://11.112114.xyz/logo/cctv14.png" group-title="央视",cctv14-MCP
-https://live.ottiptv.cc/mcp/cctv14.m3u8?userid=5554959808&sign=b955f8a6492347eb11cf1077b2b8471aa85108cbc9724a01eaa13e9aeee67c513588d5848ee2c1c53ffaf5e4fffb8065a66d431663e68ce4c372170be11fdabf4dbc410003ee72e8e38634aca9e7&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv14.m3u8?userid=5554959808&sign=4dd56df15a291796144202199a18f923d613a95496f182f032ea72bad29281a5ffa0bd3c8af0138537dadd5a020d2514c0d4ba935bdb70434662ddd52121002d5c0c1b4a03104a6b314aad0e40eb&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv15" tvg-logo="https://11.112114.xyz/logo/cctv15.png" group-title="央视",cctv15-MCP
-https://live.ottiptv.cc/mcp/cctv15.m3u8?userid=5554959808&sign=0cabd79deb2a73697d27e9388b3d3e83808c955c82a6182c02b1505ad12cf32067c6a77b25a302c0982c7860b16d3c56d18c2b3f30f32c5d72466fa3c1cb53176a34851e1b03b177e473effcddc6&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv15.m3u8?userid=5554959808&sign=681a18f76182c29b74f04526453122e0315741951b62662c30d0edc7fd84f058cab54929716974bf8d0c3de15ca098b8aabcec5f91be8b9d65838d78e87d5a01f5a04728aeda515a2a4ffcd09280&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv16" tvg-logo="https://11.112114.xyz/logo/cctv16.png" group-title="央视",cctv16-MCP
-https://live.ottiptv.cc/mcp/cctv16.m3u8?userid=5554959808&sign=410a9ba9d8834caba9c150fd919f1893c9dc7bcbbe64974124b12637218f8b266d13a0b9582e74185db6d706a047d230beaa194c395b611864f5fa7b3cb9846c42132c6d984f1bfaf0e91c6a7c51&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv16.m3u8?userid=5554959808&sign=1f3b58dae80bf0eb481bea5bca165149b293a1c3c2a0a00d9b0dad6c725c084577ea21bbf95bf0cc8118e5e2a6814fac824e93c0336b4b9768ab59f381db46471073573da348229cb1a43f45f1ef&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv17" tvg-logo="https://11.112114.xyz/logo/cctv17.png" group-title="央视",cctv17-MCP
-https://live.ottiptv.cc/mcp/cctv17.m3u8?userid=5554959808&sign=b4f49cdb55dfc9306c8fbc066edbe01f9ee6f8139ec3825eb7426834e2e318d349fd2c728daa4774be7b70a20160b698ca53d2ced6fca3f2fc66839e97116ecf35ff33c8622ab9345a10649d1fdf&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv17.m3u8?userid=5554959808&sign=a11a5bca1b5c8a138c473256d2c12e707217e608bc15340217271a0b90eb01cb21f4eb0c1fcf3ac9a56e35086d11c8ab03f43a7c15864cf89f270862fd82f1c60f71171b5ccd7ac8cf82d81dcc3a&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="cctv4k" tvg-logo="https://11.112114.xyz/logo/cctv4k.png" group-title="央视",cctv4k-MCP
-https://live.ottiptv.cc/mcp/cctv4k.m3u8?userid=5554959808&sign=58357421306f0415c75cc5cfd1d0bb993b54ced9d9b0ccb8b1e91d9d0018af795c28a89d0c307d5416c3c22b04f9e34c0207bc13bc3d66da63884cc967740d74b8e1a4b1eb02df487afebfbc64f5&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/cctv4k.m3u8?userid=5554959808&sign=ee831babf0eeaa4b511a151d949dc3aa88dd6d7cf45c5ee39b866fc0d2cb423408d79d3f29950c0ad166f4ffdf7774d58bb84fedd34b6ee3ca2d5ef84c7294797d292e55e0a421a60d32b2c894ca&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="第一剧场" tvg-logo="https://11.112114.xyz/logo/第一剧场.png" group-title="央视",第一剧场-MCP
-https://live.ottiptv.cc/mcp/dyjc.m3u8?userid=5554959808&sign=5b58254bf5ee2802bb0f512b892b26a3a90758520396fd31a7a3fbcf4b2d0fca85a6e84d08a9ba6153a8ca78b1588c10fe1350e5d6703aa96f2b57a27f9799a612a342a44fe64946e7a0c972&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/dyjc.m3u8?userid=5554959808&sign=44d9aea9e45704687207e580892e27f36a464f7e980e57f1cb76cbdae87718ddf28d9f6acf0003857b52c5bb08c8a2b4621ded9c10de8f4287c3622560e031e097cad61bf1529adf4527e98c&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="风云剧场" tvg-logo="https://11.112114.xyz/logo/风云剧场.png" group-title="央视",风云剧场-MCP
-https://live.ottiptv.cc/mcp/fyjc.m3u8?userid=5554959808&sign=a40af008ffac62527cb0bc60a9f0d09f61f8622511f2b95894e3c29483624574881bec76b3afebce87b50beb07e1e0cd9771868eb722aee5e000fdb1413d533334a3ac1022cdbf89051b764a&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/fyjc.m3u8?userid=5554959808&sign=712e8d0ce80295cabedd71376a1ebe5558fff25e0e056208762534c222706b25eb7333a30d064d7c9f1ed982253348e5dcdee8208df734c467ec36dbcd85a643e6791ac5800378540036067c&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="北京卫视" tvg-logo="https://11.112114.xyz/logo/北京卫视.png" group-title="卫视",北京卫视-MCP
-https://live.ottiptv.cc/mcp/beijing.m3u8?userid=5554959808&sign=3fad645a2455145f06972ac7eaa0d98b3a2a9995ea1ca8901a05fc9edc93ccad80d8afc0ed2bd1cb82ae3cc67787f0c8856f6aa22316b08f44bc9b7a9223058e461b02f798b6b5e03e68038dedecdc&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/beijing.m3u8?userid=5554959808&sign=372a76a03d8d196e680c5ebb88f8ba85b6aeebc25bf70b8263e6fc9e9aa8c805d1e48db7d6172bd081eb954672cb40d5864ca6f14e1df5391f54c35475a7d8ae12e06b69a95e81f8ccc7b39a941bd3&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="湖南卫视" tvg-logo="https://11.112114.xyz/logo/湖南卫视.png" group-title="卫视",湖南卫视-MCP
-https://live.ottiptv.cc/mcp/hunan.m3u8?userid=5554959808&sign=3afc35c75c30dc74e56c057943ba557c121dd015ba093fdac355c4b0348c1fcbbc90985a0818a7a686083117ac2d37df2edaee3c2d97334b07095ed04ff0bd6518378abd405c738eb278bae19c&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/hunan.m3u8?userid=5554959808&sign=4f10aa961b01216bba6883de80487b358c4ea9cbe123d7960abe20945bc9f2de711812546208d6d2048accb5c4dfef76f34b897faf0df5e6dbacfdaff3c9e6c872209778f0aedf0e59f546498e&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="江苏卫视" tvg-logo="https://11.112114.xyz/logo/江苏卫视.png" group-title="卫视",江苏卫视-MCP
-https://live.ottiptv.cc/mcp/jiangsu.m3u8?userid=5554959808&sign=34a965a6a9fe15c627f4da897471fd3d6d7b86aee357197aae6b21beaad9ad7a19cad1ca9533ea41027ca45b2479e4d8abba2e5b64e5634314b792cd0dfc0c72961c336f5e6f99c2d1ef968864629e&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/jiangsu.m3u8?userid=5554959808&sign=44f6703519d7c1c222738be50c748e53a1810b0b1ec6d60e85f9dbaa891b4db7a5fc07a36a434d452a3fcfdb156e5184ac9f2efc3d626d0ea8cc261ffba77e68c25939622530d6a534d129b0de472e&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="东方卫视" tvg-logo="https://11.112114.xyz/logo/东方卫视.png" group-title="卫视",东方卫视-MCP
-https://live.ottiptv.cc/mcp/dongfang.m3u8?userid=5554959808&sign=35d9fa8ecc65e2eb34d48c9bf04fb1e84c6eaa593ec4057246db3f1e46eaa37ff52fb1c0865e41afef446b8a0b39fd938c3ec58c4d10541de4890a743a52b73a52b989f58a51719044c500a97ce8e733&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/dongfang.m3u8?userid=5554959808&sign=467537b4be8ab967a9e1c5297d206c7eee5d5af8b91a283b57f235df812bef1e6f1a5a41ef509f2fd4c793ac8b2fc98836d1ff20b9c3c4861ab308fcfda0597414f7ed56ae92f483e69a73e019c8ab36&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="浙江卫视" tvg-logo="https://11.112114.xyz/logo/浙江卫视.png" group-title="卫视",浙江卫视-MCP
-https://live.ottiptv.cc/mcp/zhejiang.m3u8?userid=5554959808&sign=04d50db92cb6d9ebd144c902207863d5e282c67d850173602bbbfcf06c955f076a91e31ccad31951acade7358f1713c4cc0d968aeb8362e87c67b5ee129129b7967c0f0b183516b82781bad2e8aad616&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/zhejiang.m3u8?userid=5554959808&sign=03cfff7b3d476631bb6c6ffaf50ba1d33c9fac60c52df4abe2f19525e5b1e6cb9d82266458fbd38ccc16cd2ade9f11905e39622ed65afcd3f92502097054968cd55dd21a5fe567a35a0ea0c9d70613f1&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="湖北卫视" tvg-logo="https://11.112114.xyz/logo/湖北卫视.png" group-title="卫视",湖北卫视-MCP
-https://live.ottiptv.cc/mcp/hubei.m3u8?userid=5554959808&sign=4724763109869f640022b890d1632074e1cfc84b57a06acf4f2582621dc7edacae7b5e6025fc5c874e9a87d74e905937d29ff5c7c5dc57aae1c20508ee26601db4f82e3dcd2713ef8d50467f4a&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/hubei.m3u8?userid=5554959808&sign=79c30e616eb91e466f8c3262a93f9eddee79973f1ba2387d3ca46fc7b0c87d8a22b48cac35115c2d36d467ca6e28b91f29099d90362e955c64a608bf0bc820349fb6779f7542fea39baca299ac&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="天津卫视" tvg-logo="https://11.112114.xyz/logo/天津卫视.png" group-title="卫视",天津卫视-MCP
-https://live.ottiptv.cc/mcp/tianjing.m3u8?userid=5554959808&sign=4f065a412237c555a8778305944ea4d4430266cc3ab0665556e7483aca4c2b88e5daffc80738c4b99f358f87a0f20b6eaee0344734ce9e10d93b9571be9492ab10d5b63bb151e6baaea301d28436c55c&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/tianjing.m3u8?userid=5554959808&sign=5e86cbfc470ca98f6df275cd72bf956f73b2ced93f8266cfe8ba1b1b9fcc96c6bbe566f80d38f5180da444d44c46e081c73e109e81a37fa337d8cee44550fa8ac5b2f085b465ed44ca0a4ecc48fe5e55&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="山东卫视" tvg-logo="https://11.112114.xyz/logo/山东卫视.png" group-title="卫视",山东卫视-MCP
-https://live.ottiptv.cc/mcp/shandong.m3u8?userid=5554959808&sign=9661edc3d9df6e4f60c8a0895849bb0263bea061a690d3a423012884a197a9f75b329894f12b3f453dd7bb8b7992c5113698447c73cd2dae2619e81db3d6d999c3c89236d56ed26ad4f5cfdedb64d61a&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/shandong.m3u8?userid=5554959808&sign=a18d97463bd04b7855e51a46cc5e1eca21cf8cacda57dcd97b4f054dbbf55225023c008bdfff11febfe11d3ca450194a5a1a423ce7f7a145546cac33b2370876475db9b7d55be08d61e5651649465470&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="辽宁卫视" tvg-logo="https://11.112114.xyz/logo/辽宁卫视.png" group-title="卫视",辽宁卫视-MCP
-https://live.ottiptv.cc/mcp/liaoning.m3u8?userid=5554959808&sign=4c84f97f3cb759c6408f97ddca25a5c65d3a84a35306f341fca0c33bcf12143668be54731fa78cce16bfd6c82159012ecd23d57eabdbeeb6c9f64fa75ea316423737c894813e60f626c74a2bee8fd43b&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/liaoning.m3u8?userid=5554959808&sign=ddd73e7b200d52db2d2ee5bb02c6df272ca9502ea0fcfcd72edd840b9ef13c7ee6006320cf1941d51370959861a6e58b1fc6f9d631dcb280e770e9439be3d24b03286b831928ad0f199b1fbe79d1cc83&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="安徽卫视" tvg-logo="https://11.112114.xyz/logo/安徽卫视.png" group-title="卫视",安徽卫视-MCP
-https://live.ottiptv.cc/mcp/anhui.m3u8?userid=5554959808&sign=d5ceb779d6188ed6ba43151d22218776d904e7470121d8f08a0298875b9e0a54bca86e5ead7c3cf2956c3c682c6274b677869b923132bb573eca2df0b01b31e6d825f3270eab2adb2ebd545fe0&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/anhui.m3u8?userid=5554959808&sign=f43c527f394d5ede3a0218d20af64ac4cc77417eae833327e014e7a917a5242f6d971588f94e7dbe7d19b613d836018e7e1889a495c5c8f1aaa8272dd1a60ed42927e616207b80ee6dd0a91272&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="黑龙江卫视" tvg-logo="https://11.112114.xyz/logo/黑龙江卫视.png" group-title="卫视",黑龙江卫视-MCP
-https://live.ottiptv.cc/mcp/heilongjiang.m3u8?userid=5554959808&sign=a91a312b1ac45699abdb6a5c1c8ded4e2557d3e889d664a8ad59bd48441f34cb48ad3d49311faa1622fe14b4922c2461dfed1b024b24af7a01f782981a594366f7cc8a678c63f24b24d5dd47971e767ce80efc6d&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/heilongjiang.m3u8?userid=5554959808&sign=9e77667cd6094cec924d43eaf25ac8f49e5c621d05674e7e99929d277032d6188fd23eef37af533a5f99d2bf66fa55c23679cb96a1aa208920da31fc6c99ae9694f2905e291ef156558e7d63dacfb768a54fe915&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="贵州卫视" tvg-logo="https://11.112114.xyz/logo/贵州卫视.png" group-title="卫视",贵州卫视-MCP
-https://live.ottiptv.cc/mcp/guizhou.m3u8?userid=5554959808&sign=280e54a3cb66a4b789fe8ba2820b203831e4046e291e7f27ddf614ef87154e73010976be735368635e58e4cd38327834ddf7f7178f13bbb534b716c74d5af53cda61766bbeb52198f5456b905c557d&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/guizhou.m3u8?userid=5554959808&sign=05939902b332e0a5c8b1cdcbbd2b5f4df4d479cc6f3dc6438a6ab8afb7b6b94284f708316f6af91518d20c9127370141d4d29f0bb397402d789d8343a5f5630ab47ca11b40d48268a6c67ffff85f2b&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="东南卫视" tvg-logo="https://11.112114.xyz/logo/东南卫视.png" group-title="卫视",东南卫视-MCP
-https://live.ottiptv.cc/mcp/dongnan.m3u8?userid=5554959808&sign=e1684a9edf4bdb3e4ac028a076df066dde32efd8ba1688877da0ae52eae5e26712bcfc41a4cfa70624c406f2e65f49d3aa583a487bee6e2874c3d0f3310e1f5c16bb5526f2f2272d6afbc022d8eabd&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/dongnan.m3u8?userid=5554959808&sign=bf694e773acf55a2cb71d413fe0fd0b5130626ccae04d64fd5869b58c0416fa32bd0ab5c8585cb365a671a44a1ce77674dde6f9c47664f7ef13cbae5b345ba6152208b0f56041bc011e1c4b3aaf167&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="重庆卫视" tvg-logo="https://11.112114.xyz/logo/重庆卫视.png" group-title="卫视",重庆卫视-MCP
-https://live.ottiptv.cc/mcp/chongqing.m3u8?userid=5554959808&sign=bc5186023521ca9a986b4640d7d7c8247b8e14bb08be38cdcd04acc12c5e9f3ca51bf2f30e032a710ae8e18635ef01f09e886fe9dbe3ecc07b1d95583ef2cd58d4fa1be7f839aa47262cff55fc7bc88878&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/chongqing.m3u8?userid=5554959808&sign=a1424e3557f50eda51b9c3269c6c15b3b7138a73691876f60e36404f63cc5021210f4885a632a487f293f5782f81d7acd7cd86e1ca888377607f9c5adb2f016aedc5c1622c5b042a634f684954e2209d1d&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="江西卫视" tvg-logo="https://11.112114.xyz/logo/江西卫视.png" group-title="卫视",江西卫视-MCP
-https://live.ottiptv.cc/mcp/jiangxi.m3u8?userid=5554959808&sign=54bd5d3928364e1236604c58746887dc5b9e268f958d0cb242d31c8ec00271055f720b7bee320b0b00be622875f3d0613e27172ec0c723649f25db23d80d8fc328baac6c5d1ee735e0001f16c99681&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/jiangxi.m3u8?userid=5554959808&sign=8c5c951a9f41f4b9c3a976cec84673939597a59e73d7e0be191c051ae3f4c707f1e54b7fe144035588963fa7526b1c43d79b07131e952ecb43881f2a73873c8e332c4e5fae8fec86acb14279016dc4&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="广东卫视" tvg-logo="https://11.112114.xyz/logo/广东卫视.png" group-title="卫视",广东卫视-MCP
-https://live.ottiptv.cc/mcp/guangdong.m3u8?userid=5554959808&sign=8e0e4d88e09f80cc77efc27cfdf0a3f0b4b559545783588bdbbb771bd6b2964692a057301ce9a9fee0e62d316b36771d13df71d5a65748570a50159aeda43422ef47691e5561eb87d287843c93cd32706c&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/guangdong.m3u8?userid=5554959808&sign=17af6baac5a0ddbc40022e097f5fec1f2c00904c21e797d09f92705f644fb9c04fc3cdd996475c1034452b313afb0da563a0316b775b7a9cd94f5d3238313e5d36f0364650f08ca42a3018e0e1ef945568&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="河北卫视" tvg-logo="https://11.112114.xyz/logo/河北卫视.png" group-title="卫视",河北卫视-MCP
-https://live.ottiptv.cc/mcp/hebei.m3u8?userid=5554959808&sign=61daa24d08f9da2d821a35d8bbf94246a43001bb61c5f4f881bd613f79e8bd4b0395c903be6e0e53f6dc9e2f154e6b986905186c8263386733fc34b2f3c7c88bfeca56639620720e547da56745&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/hebei.m3u8?userid=5554959808&sign=493c4727e8c41aec124dd9febb544b0a2897d8e70997610430b0c230edf92306351c7d3f4c34b8ee5377a05298071dbbd8785af744ba6381e55ffa3d091d2879dea3642edd9e5360b0c58677e9&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="深圳卫视" tvg-logo="https://11.112114.xyz/logo/深圳卫视.png" group-title="卫视",深圳卫视-MCP
-https://live.ottiptv.cc/mcp/shenzheng.m3u8?userid=5554959808&sign=3270ec805bbdea098dc9536bfc5b0e00f2cbd6f94febea5da9728e18496991ac5d8d92f06eca0a6e6d74d9e714128b08432ca8bedff320e54590a4601a2215878809fdce2941977bdcdfb1dafb6d2f0eec&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/shenzheng.m3u8?userid=5554959808&sign=3b450ae366ae9811096b0b0a4ab1023312a85f84324fd3cd439cd952e413f30f480fbb5f5c7ce042093803252ec092defae57d39cd0559d1d085af4d1621ba83bf17c1f5915e7703d16fe05baa0a08ba4b&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="吉林卫视" tvg-logo="https://11.112114.xyz/logo/吉林卫视.png" group-title="卫视",吉林卫视-MCP
-https://live.ottiptv.cc/mcp/jiling.m3u8?userid=5554959808&sign=9a7a1d770d70949f30f2c6b3d13e3f0eb53094132ad80eba5c3f8d3dae9773ced08f3d410e1982d55f99d1022cd853c2825346f935b9833e98970cc8dd3473e3ec46cb7b9da093b82f156f4a4e9b&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/jiling.m3u8?userid=5554959808&sign=760a667fe14557bc8f86b60551b685e76f0151a6e35b357cb9c1e32adbfad6b10f5cda43fa8c1b8c0de07453e45395b447bdb7d0822a728dbf63da6d9741c396c04a610de9663e4293bf77cfc6f3&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="四川卫视" tvg-logo="https://11.112114.xyz/logo/四川卫视.png" group-title="卫视",四川卫视-MCP
-https://live.ottiptv.cc/mcp/sichuan.m3u8?userid=5554959808&sign=bbbed3bd162df80fc98aaeb18644bacf7fde8fce2fa3d56823d823df0a8cd061f8d6e5403f72e896a447a9fbe05662296b631c639bece0afa136764cc8df8df6d21896fff087129f161f5782c2fbe0&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/sichuan.m3u8?userid=5554959808&sign=b177dc17df0f01ddd501d439168dd7389062ebd202bb83c399c5de7c4c5a39bed6352372a21536712171141397111e7ecd875a3c279acb25d2c4c8af38f16f2a398fa9a473a34dc6788ccf54b2f6fa&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="广西卫视" tvg-logo="https://11.112114.xyz/logo/广西卫视.png" group-title="卫视",广西卫视-MCP
-https://live.ottiptv.cc/mcp/guangxi.m3u8?userid=5554959808&sign=f8633b869d070a96f0a45417461dfcb0335b86c690eecae8ae89319d94b184d9b89b84f4f52236ea468758c195b0affa4540f63e1e6a8b5354633f23d2595dee89b1c731d8e1e62cab5f38ee2f13ed&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/guangxi.m3u8?userid=5554959808&sign=27d72285f945d8d4e402d8b82249934e90063bc04a41d6edb1a2469b2b9cdd03e03947c454fcc1ab965eb1f7c3f972e7e9a528408de2b4f24b846d2767a1b847c2c5021d4012b8e9c44a787eafa6db&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="宁夏卫视" tvg-logo="https://11.112114.xyz/logo/宁夏卫视.png" group-title="卫视",宁夏卫视-MCP
-https://live.ottiptv.cc/mcp/ningxia.m3u8?userid=5554959808&sign=faf9cb31c47612af93c466ca97b6349c299f5c26ecb02db80eb0e51b4988fc3989643a1ece26f281a2d95c7f57ff1e09523abb5164b91360173b00b60f39e4c0a9f3799882aba716dd37e2beb2d241&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/ningxia.m3u8?userid=5554959808&sign=d641b37f6cbac609b4b32b25e2779cdb5b64afab514317970763c215c5a1cff23b91c2fd5d3c64e9a0818c1ce65bf4a6e36b44a4e4f5cd4578883ad3f6299fa17963189d21b0532a50d7c51b329a2b&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 #EXTINF:-1 tvg-name="国学频道" tvg-logo="https://11.112114.xyz/logo/国学频道.png" group-title="卫视",国学频道-MCP
-https://live.ottiptv.cc/mcp/guoxue.m3u8?userid=5554959808&sign=71d54e81a70b7683bb2e5249cf0ffb3556a972add287754710f1395337bf1b7e3d444804fdddafcd6ca7b087a84e17af5e7b71e3a1441cefd2348f29789b0ac60c16229a255ce39c588f712c330c&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
+https://live.ottiptv.cc/mcp/guoxue.m3u8?userid=5554959808&sign=20022478ccca990c12c9e5345eaabea65d34e04d2f9ae4eac552023642242358f07ac81f2f0f17148465d6c05813965286642393a8c388de07d5e79f377a145503b4efc0784c3f51dd3f2a18b602&auth_token=72035bf70d8bcd08c6bc65199e03fc4d
 
 
 #EXTM3U x-tvg-url="https://epg.tv.darwinchow.com/epg.xml"
@@ -106,10 +106,13 @@ https://vhr.dpdns.org/20003/live/fhzx/stream.m3u8
 http://php.jdshipin.com:8880/smt.php?id=phoenixinfo_hd
 http://r.jdshipin.com/0Rp07
 #EXTINF:-1 tvg-id="凤凰香港" tvg-name="凤凰香港" tvg-logo="http://bxtv.3a.ink/logo/凤凰香港.png" group-title="三只鸟",凤凰香港台
+http://php.jdshipin.com/TVOD/iptv.php?id=fhhk
 http://rihou.cc:8/凤凰香港
 https://cdn6.101.qzz.io/163189/fhhk
 https://vhr.dpdns.org/20003/live/fhhk/stream.m3u8
 http://php.jdshipin.com:8880/smt.php?id=hkphoenix_twn
+
+
 
 
 
