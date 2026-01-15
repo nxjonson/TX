@@ -16,6 +16,7 @@ https://vhr.dpdns.org/20003/live/fhzx/stream.m3u8
 http://php.jdshipin.com:8880/smt.php?id=phoenixinfo_hd
 http://r.jdshipin.com/0Rp07
 #EXTINF:-1 tvg-id="凤凰香港" tvg-name="凤凰香港" tvg-logo="http://bxtv.3a.ink/logo/凤凰香港.png" group-title="三只鸟",凤凰香港台
+http://php.jdshipin.com/TVOD/iptv.php?id=fhhk
 http://rihou.cc:8/凤凰香港
 https://cdn6.101.qzz.io/163189/fhhk
 https://vhr.dpdns.org/20003/live/fhhk/stream.m3u8
