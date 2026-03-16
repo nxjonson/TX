@@ -8,7 +8,7 @@ on:
 permissions:
   contents: write          # 仅授予必要权限
 
-# 全局环境变量（关键：把Node.js 24强制配置提到顶级，确保所有步骤生效）
+# 全局环境变量：强制所有JS动作使用Node.js 24
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -17,19 +17,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.0  # 适配Node.js 24的最新版
+        # 升级到v4.4.0（官方明确支持Node.js 24）
+        uses: actions/checkout@v4.4.0
         with:
           persist-credentials: true
           fetch-depth: 0              # 拉取完整历史，避免提交冲突
 
+      - name: 创建空的requirements.txt（消除Python依赖提示）
+        run: touch requirements.txt
+
       - name: Set up Python
-        uses: actions/setup-python@v5.2.0  # 适配Node.js 24的最新版
+        # 升级到v5.3.0（官方明确支持Node.js 24）
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: '3.x'
-          cache: 'pip'                     # 缓存Python依赖（无依赖文件时自动跳过，无影响）
-        # 屏蔽"无requirements.txt"的无害提示
-        env:
-          PIP_NO_DEFAULT_VERSION_WARNING: 1
+          cache: 'pip'                     # 缓存Python依赖（空文件不影响）
 
       - name: Check trigger type
         id: check_trigger
