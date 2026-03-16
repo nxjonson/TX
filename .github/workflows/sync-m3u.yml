@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        # 升级到v4.4.0（官方明确支持Node.js 24）
-        uses: actions/checkout@v4.4.0
+        # 使用官方存在的最新稳定版 v4.2.1（支持Node.js 24）
+        uses: actions/checkout@v4.2.1
         with:
           persist-credentials: true
           fetch-depth: 0              # 拉取完整历史，避免提交冲突
@@ -27,8 +27,8 @@ jobs:
         run: touch requirements.txt
 
       - name: Set up Python
-        # 升级到v5.3.0（官方明确支持Node.js 24）
-        uses: actions/setup-python@v5.3.0
+        # 使用官方存在的最新稳定版 v5.2.0（支持Node.js 24）
+        uses: actions/setup-python@v5.2.0
         with:
           python-version: '3.x'
           cache: 'pip'                     # 缓存Python依赖（空文件不影响）
