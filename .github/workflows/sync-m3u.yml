@@ -8,24 +8,28 @@ on:
 permissions:
   contents: write          # 仅授予必要权限
 
+# 全局环境变量（关键：把Node.js 24强制配置提到顶级，确保所有步骤生效）
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   sync:
     runs-on: ubuntu-latest
-    # 强制使用 Node.js 24，消除弃用警告
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.0  # 适配 Node.js 24 的最新版
+        uses: actions/checkout@v4.2.0  # 适配Node.js 24的最新版
         with:
           persist-credentials: true
           fetch-depth: 0              # 拉取完整历史，避免提交冲突
 
       - name: Set up Python
-        uses: actions/setup-python@v5.2.0  # 适配 Node.js 24 的最新版
+        uses: actions/setup-python@v5.2.0  # 适配Node.js 24的最新版
         with:
           python-version: '3.x'
-          cache: 'pip'                     # 缓存 Python 依赖，加速执行
+          cache: 'pip'                     # 缓存Python依赖（无依赖文件时自动跳过，无影响）
+        # 屏蔽"无requirements.txt"的无害提示
+        env:
+          PIP_NO_DEFAULT_VERSION_WARNING: 1
 
       - name: Check trigger type
         id: check_trigger
@@ -202,7 +206,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "ℹ️ No changes to li.m3u, skip commit"
             echo "m3u_changed=false" >> "$GITHUB_OUTPUT"
-          else
+          else:
             # 提交并推送
             git commit -m "chore: update li.m3u $(date +'%Y-%m-%d %H:%M:%S')"
             git push origin main
